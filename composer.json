@@ -19,12 +19,11 @@
         ]
     },
     "require": {
+        "chayka/core-wpp": "dev-master",
         "nqxcode/phpmorphy": "dev-master",
         "zf1/zend-search-lucene": "dev-master"
     },
     "requireDev": {},
     "suggest": {
-        "chayka/wp": "dev-master",
-        "chayka/core-wpp": "dev-master"
     }
 }
