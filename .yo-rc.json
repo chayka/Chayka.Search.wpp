@@ -1,0 +1,62 @@
+{
+  "generator-chayka": {
+    "support": [
+      "UriProcessing",
+      "ConsolePages",
+      "Metaboxes",
+      "PostProcessing"
+    ],
+    "register": [
+      "registerActions",
+      "registerFilters",
+      "registerResources",
+      "registerRoutes",
+      "registerConsolePages",
+      "registerMetaboxes",
+      "registerSidebars"
+    ],
+    "appType": "plugin",
+    "appName": "Chayka.Search",
+    "appDescription": "Real indexing Search Engine Plugin",
+    "appKeywords": "WordPress, Chayka, search, search engine, lucene, morphy",
+    "appVersion": "0.0.1",
+    "packagistVendor": "chayka",
+    "packagistPackage": "search-wpp",
+    "phpNamespace": "Chayka\\Search",
+    "chaykaFramework": "external",
+    "chaykaFrameworkDeps": {
+      "helpers": true,
+      "mvc": true,
+      "wp": true
+    },
+    "initDep": true,
+    "initDepPhpClass": "Chayka\\WP\\Plugin",
+    "initDepMessage": "Chayka Framework functionality is not available",
+    "gitInit": true,
+    "gitRemote": "github",
+    "githubUser": "chayka",
+    "gitRemoteRepo": "git@github.com:chayka/Chayka.Search.wpp.git",
+    "gitPush": false,
+    "appAuthor": "Boris Mossounov",
+    "appAuthorEmail": "borix@tut.by",
+    "appAuthorUri": "http://anotherguru.me/",
+    "appLicense": "MIT",
+    "appClass": "Plugin",
+    "ideaProject": "Chayka.Search.wpp",
+    "ideaDeploymentPath": "/Chayka.Core.wpp/vendor/chayka/search-wpp/",
+    "ideaDeploymentServer": "WP Plugins",
+    "helpers": [
+      "nls",
+      "option"
+    ],
+    "controllers": {
+      "Indexer": [],
+      "Admin": [
+        "search-engine"
+      ]
+    },
+    "consolePages": [
+      "search-engine"
+    ]
+  }
+}

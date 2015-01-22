@@ -1,0 +1,26 @@
+{
+    "name": "Chayka.Search",
+    "description": "Real indexing Search Engine Plugin",
+    "version": "0.0.1",
+    "license": "MIT",
+    "authors": [
+        "Boris Mossounov <borix@tut.by>"
+    ],
+    "keywords": [
+        "WordPress",
+        "Chayka",
+        "search",
+        "search engine",
+        "lucene",
+        "morphy"
+    ],
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "res/lib",
+        "test",
+        "tests"
+    ],
+    "dependencies": {}
+}

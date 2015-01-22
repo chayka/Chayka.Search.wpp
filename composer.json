@@ -1,0 +1,30 @@
+{
+    "name": "chayka/search-wpp",
+    "description": "Real indexing Search Engine Plugin",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "version": "0.0.1",
+    "authors": [
+        {
+            "name": "Boris Mossounov",
+            "email": "borix@tut.by"
+        }
+    ],
+    "chayka-wp-plugin": "Chayka\\Search\\Plugin",
+    "autoload": {
+        "classmap": [
+            "app/helpers",
+            "app/models",
+            "Plugin.php"
+        ]
+    },
+    "require": {
+        "nqxcode/phpmorphy": "dev-master",
+        "zf1/zend-search-lucene": "dev-master"
+    },
+    "requireDev": {},
+    "suggest": {
+        "chayka/wp": "dev-master",
+        "chayka/core-wpp": "dev-master"
+    }
+}

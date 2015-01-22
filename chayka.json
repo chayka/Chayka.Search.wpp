@@ -1,0 +1,34 @@
+{
+    "appType": "plugin",
+    "appName": "Chayka.Search",
+    "appDescription": "Real indexing Search Engine Plugin",
+    "appKeywords": "WordPress, Chayka, search, search engine, lucene, morphy",
+    "appVersion": "0.0.1",
+    "appAuthor": "Boris Mossounov",
+    "appAuthorEmail": "borix@tut.by",
+    "appAuthorUri": "http://anotherguru.me/",
+    "appLicense": "MIT",
+    "phpNamespace": "Chayka\\Search",
+    "chaykaFramework": "external",
+    "chaykaFrameworkDeps": {
+        "helpers": true,
+        "mvc": true,
+        "wp": true,
+        "core": true
+    },
+    "support": [
+        "UriProcessing",
+        "ConsolePages",
+        "Metaboxes",
+        "PostProcessing"
+    ],
+    "register": [
+        "registerActions",
+        "registerFilters",
+        "registerResources",
+        "registerRoutes",
+        "registerConsolePages",
+        "registerMetaboxes",
+        "registerSidebars"
+    ]
+}
