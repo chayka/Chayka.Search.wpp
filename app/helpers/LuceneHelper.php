@@ -12,17 +12,7 @@ namespace Chayka\Search;
 use Chayka\Helpers\FsHelper;
 use Chayka\Helpers\Util;
 use phpMorphy;
-use Zend_Search_Lucene;
-use Zend_Search_Lucene_Analysis_Analyzer;
-use Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8_CaseInsensitive;
-use Zend_Search_Lucene_Analysis_Token;
-use Zend_Search_Lucene_Analysis_TokenFilter;
-use Zend_Search_Lucene_Document;
-use Zend_Search_Lucene_Field;
-use Zend_Search_Lucene_Index_Term;
-use Zend_Search_Lucene_Search_Query;
-use Zend_Search_Lucene_Search_QueryLexer;
-use Zend_Search_Lucene_Search_QueryParser;
+use ZendSearch\Lucene;
 
 class LuceneHelper {
 
@@ -47,12 +37,12 @@ class LuceneHelper {
     protected static $queries;
 
     /**
-     * @var Zend_Search_Lucene_Search_Query
+     * @var Lucene\Search\Query\AbstractQuery
      */
     protected static $query;
 
     /**
-     * @var Zend_Search_Lucene_Search_QueryLexer
+     * @var Lucene\Search\QueryLexer
      */
     protected static $lexer;
 
@@ -71,15 +61,15 @@ class LuceneHelper {
     }
 
     /**
-     * Get Zend_Search_Lucene instance
+     * Get Lucene instance
      * @param string $indexId
-     * @return Zend_Search_Lucene
+     * @return Lucene\Index
      */
     public static function getInstance($indexId = '') {
         if (empty(self::$instance[$indexId])) {
             self::initAnalyzer();
             $indexFnDir = self::getDir($indexId);
-            self::$instance[$indexId] = new Zend_Search_Lucene($indexFnDir, !is_dir($indexFnDir));
+            self::$instance[$indexId] = new Lucene\Index($indexFnDir, !is_dir($indexFnDir));
         }
 
         return self::$instance[$indexId];
@@ -89,15 +79,15 @@ class LuceneHelper {
      * Analyzer Initialization
      */
     public static function initAnalyzer(){
-        $analyzer = Zend_Search_Lucene_Analysis_Analyzer::getDefault();
+        $analyzer = Lucene\Analysis\Analyzer\Analyzer::getDefault();
 
         if(!($analyzer instanceof Analyzer)){
 
             try {
-                Zend_Search_Lucene_Search_QueryParser::setDefaultEncoding('utf-8');
+                Lucene\Search\QueryParser::setDefaultEncoding('utf-8');
                 $analyzer = new Analyzer();
                 $analyzer->addFilter(self::getMorphy());
-                Zend_Search_Lucene_Analysis_Analyzer::setDefault($analyzer);
+                Lucene\Analysis\Analyzer\Analyzer::setDefault($analyzer);
 
             } catch (\Exception $e) {
                 die('Exception: ' . $e->getMessage());
@@ -158,17 +148,26 @@ class LuceneHelper {
      * @param int $limit
      */
     public static function setLimit($limit = 0){
-        Zend_Search_Lucene::setResultSetLimit($limit);
+        Lucene\Lucene::setResultSetLimit($limit);
+    }
+
+    /**
+     * Set default search field
+     *
+     * @param string $field
+     */
+    public static function setDefaultSearchField($field){
+        Lucene\Lucene::setDefaultSearchField($field);
     }
 
     /**
      * Set search query, parse if needed.
      *
-     * @param string|Zend_Search_Lucene_Search_Query $query
+     * @param string|Lucene\Search\Query\AbstractQuery $query
      */
     public static function setQuery($query) {
         if ($query) {
-            if ($query instanceof Zend_Search_Lucene_Search_Query) {
+            if ($query instanceof Lucene\Search\Query\AbstractQuery) {
                 self::$query = $query;
             } elseif (is_string($query)) {
                 self::$query = Util::getItem(self::$queries, $query);
@@ -182,7 +181,7 @@ class LuceneHelper {
     /**
      * Get current query object.
      *
-     * @return Zend_Search_Lucene_Search_Query
+     * @return Lucene\Search\Query\AbstractQuery
      */
     public static function getQuery(){
         return self::$query;
@@ -192,11 +191,11 @@ class LuceneHelper {
      * Parse string query, store parsed query in internal hash
      *
      * @param string $query
-     * @return Zend_Search_Lucene_Search_Query
+     * @return Lucene\Search\Query\AbstractQuery
      */
     public static function parseQuery($query) {
         if (empty(self::$queries[$query])) {
-            self::$queries[$query] = Zend_Search_Lucene_Search_QueryParser::parse($query, 'utf-8');
+            self::$queries[$query] = Lucene\Search\QueryParser::parse($query, 'utf-8');
         }
 
         return self::$queries[$query];
@@ -205,11 +204,11 @@ class LuceneHelper {
     /**
      * Get lexer
      *
-     * @return Zend_Search_Lucene_Search_QueryLexer
+     * @return Lucene\Search\QueryLexer
      */
     public static function getLexer(){
         if(!self::$lexer){
-            self::$lexer = new Zend_Search_Lucene_Search_QueryLexer();
+            self::$lexer = new Lucene\Search\QueryLexer();
         }
         return self::$lexer;
     }
@@ -245,7 +244,7 @@ class LuceneHelper {
             $normalized = $morphy->normalizeWord($token->text);
             $numDocs = 0;
             foreach($fieldNames as $fieldName){
-                $term = new Zend_Search_Lucene_Index_Term($normalized, $fieldName);
+                $term = new Lucene\Index\Term($normalized, $fieldName);
                 $numDocs += $lucene->docFreq($term);
             }
             $token->numDocs = $numDocs;
@@ -300,7 +299,7 @@ class LuceneHelper {
      * @return \Zend_Search_Lucene_Document
      */
     public static function luceneDocFromArray($item) {
-        $doc = new Zend_Search_Lucene_Document();
+        $doc = new Lucene\Document();
         foreach ($item as $field => $opts) {
             $encoding = 'utf-8';
             $type = 'unstored';
@@ -319,15 +318,15 @@ class LuceneHelper {
             }
 
             if ('keyword' == $type) {
-                $doc->addField(Zend_Search_Lucene_Field::keyword($field, $value, $encoding));
+                $doc->addField(Lucene\Document\Field::keyword($field, $value, $encoding));
             } elseif ('unindexed' == $type) {
-                $doc->addField(Zend_Search_Lucene_Field::unIndexed($field, $value, $encoding));
+                $doc->addField(Lucene\Document\Field::unIndexed($field, $value, $encoding));
             } elseif ('binary' == $type) {
-                $doc->addField(Zend_Search_Lucene_Field::binary($field, $value));
+                $doc->addField(Lucene\Document\Field::binary($field, $value));
             } elseif ('text' == $type) {
-                $doc->addField(Zend_Search_Lucene_Field::text($field, $value, $encoding));
+                $doc->addField(Lucene\Document\Field::text($field, $value, $encoding));
             } elseif ('unstored' == $type) {
-                $doc->addField(Zend_Search_Lucene_Field::unStored($field, $value, $encoding));
+                $doc->addField(Lucene\Document\Field::unStored($field, $value, $encoding));
             }
             $doc->getField($field)->boost = $boost;
         }
@@ -348,7 +347,7 @@ class LuceneHelper {
         $deleted = 0;
         if ($key && $value) {
             $index = self::getInstance($indexId);
-            $term = new Zend_Search_Lucene_Index_Term($value, $key);
+            $term = new Lucene\Index\Term($value, $key);
             $docIds = $index->termDocs($term);
             foreach ($docIds as $id) {
                 $index->delete($id);
@@ -371,15 +370,14 @@ class LuceneHelper {
     /**
      * Index Lucene document (put document to index)
      *
-     * @param Zend_Search_Lucene_Document $doc
+     * @param Lucene\Document $doc
      * @param string $indexId
      */
     public static function indexLuceneDoc($doc, $indexId = '') {
         $index = self::getInstance($indexId);
         $id = $doc->getFieldValue(self::$idField);
         try {
-            $d = self::deleteById($id);
-//            echo "d: $d, ";
+            self::deleteById($id);
             $index->addDocument($doc);
         } catch (\Exception $e) {
             die($e->getMessage());
@@ -396,7 +394,7 @@ class LuceneHelper {
      * @return int
      */
     public static function docFreq($term, $field = null, $indexId = ''){
-        $term = new Zend_Search_Lucene_Index_Term($term, $field);
+        $term = new Lucene\Index\Term($term, $field);
         return self::getInstance($indexId)->docFreq($term);
     }
 
@@ -417,11 +415,6 @@ class LuceneHelper {
         }
         return 0;
     }
-//    public static function indexDocument(LuceneReadyInterface $document) {
-//        $item = $document->packLuceneDoc();
-//        $doc = self::luceneDocFromArray($item);
-//        self::indexLuceneDoc($doc);
-//    }
 
     /**
      * Search and return lucene hits
@@ -490,13 +483,13 @@ class LuceneHelper {
             $html = preg_replace('%(<\/?)b\b%imUs', '$1strong', $html);
         }
 
-        Zend_Search_Lucene_Analysis_Analyzer::getDefault()->reset();
+        Lucene\Analysis\Analyzer\Analyzer::getDefault()->reset();
         return self::$query ? self::$query->htmlFragmentHighlightMatches($html, 'utf-8') : $html;
     }
 
 }
 
-class Analyzer extends Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8_CaseInsensitive{
+class Analyzer extends Lucene\Analysis\Analyzer\Common\Utf8\CaseInsensitive{
     /**
      * This is quick fix that enables cyrillic UTF-8 highlighting
      *
@@ -510,7 +503,7 @@ class Analyzer extends Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8_CaseInse
 
 }
 
-class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
+class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
 
     private $morphy = array();
 
@@ -770,10 +763,10 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
     /**
      * MorphyFilter function that normalizes given token (word)
      *
-     * @param Zend_Search_Lucene_Analysis_Token $srcToken
-     * @return Zend_Search_Lucene_Analysis_Token|null
+     * @param Lucene\Analysis\Token $srcToken
+     * @return Lucene\Analysis\Token|null
      */
-    public function normalize(Zend_Search_Lucene_Analysis_Token $srcToken) {
+    public function normalize(Lucene\Analysis\Token $srcToken) {
 
         $word = $srcToken->getTermText();
 
@@ -782,7 +775,7 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
             return null;
         }
 
-        $newToken = new Zend_Search_Lucene_Analysis_Token(
+        $newToken = new Lucene\Analysis\Token(
             $word,
             $srcToken->getStartOffset(),
             $srcToken->getEndOffset()

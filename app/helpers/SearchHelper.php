@@ -24,7 +24,7 @@ class SearchHelper {
      * @internal param string $indexId
      */
     public static function getIndex(){
-        return LuceneHelper2::getInstance();
+        return LuceneHelper::getInstance();
     }
 
     /**
@@ -248,7 +248,7 @@ class SearchHelper {
      * @param int $limit
      */
     public static function setLimit($limit = 0){
-        LuceneHelper2::setLimit($limit);
+        LuceneHelper::setLimit($limit);
     }
 
     /**
@@ -258,7 +258,7 @@ class SearchHelper {
      * @param string|null $field
      */
     public static function setDefaultSearchField($field = null){
-        LuceneHelper2::getInstance()->setDefaultSearchField($field);
+        LuceneHelper::setDefaultSearchField($field);
     }
 
     /**
@@ -285,7 +285,7 @@ class SearchHelper {
 
         self::getIndex();
 
-        $reorderedQuery = LuceneHelper2::reorderWordsInQuery($searchQuery, $searchField?array($searchField):null);
+        $reorderedQuery = LuceneHelper::reorderWordsInQuery($searchQuery, $searchField?array($searchField):null);
 
         $strQuery = '('.$reorderedQuery.')';
 
@@ -295,10 +295,10 @@ class SearchHelper {
 
         self::setDefaultSearchField($searchField);
 
-        $luceneQuery = LuceneHelper2::parseQuery($strQuery);
-        $hits = LuceneHelper2::searchHits($luceneQuery);
+        $luceneQuery = LuceneHelper::parseQuery($strQuery);
+        $hits = LuceneHelper::searchHits($luceneQuery);
 
-        LuceneHelper2::setQuery($searchQuery);
+        LuceneHelper::setQuery($searchQuery);
 
         self::setDefaultSearchField(null);
 
@@ -312,7 +312,7 @@ class SearchHelper {
 //            $scores = array();
             foreach($hits as $hit){
                 try{
-                    $id = substr($hit->getDocument()->getFieldValue(LuceneHelper2::getIdField()), 3);
+                    $id = substr($hit->getDocument()->getFieldValue(LuceneHelper::getIdField()), 3);
                     $ids[]=$id;
                 }catch(\Exception $e){
                     die($e->getMessage());
@@ -347,7 +347,7 @@ class SearchHelper {
             }
             $posts = $tmp;
         }
-        LuceneHelper2::getInstance()->resetTermsStream();
+        LuceneHelper::getInstance()->resetTermsStream();
 
         return $posts;
     }
@@ -370,7 +370,7 @@ class SearchHelper {
      */
     public static function highlight($html, $query=''){
         return OptionHelper::getOption('highlight')?
-            LuceneHelper2::highlight($html, $query):
+            LuceneHelper::highlight($html, $query):
             $html;
     }
 
@@ -385,15 +385,15 @@ class SearchHelper {
 //        self::getIndex();
         if($postType){
 //            Util::print_r($postType);
-//            return LuceneHelper2::docFreq($postType, 'post_type');
-//            $lquery = LuceneHelper2::parseQuery(
+//            return LuceneHelper::docFreq($postType, 'post_type');
+//            $lquery = LuceneHelper::parseQuery(
 //                sprintf('post_type: %s', $postType)
 //                sprintf('%s', $postType)
 //            );
-//            $hits = LuceneHelper2::searchHits($lquery);
+//            $hits = LuceneHelper::searchHits($lquery);
             self::commit();
-            LuceneHelper2::getInstance()->setDefaultSearchField('post_type');
-            $hits = LuceneHelper2::searchHits($postType);
+            LuceneHelper::setDefaultSearchField('post_type');
+            $hits = LuceneHelper::searchHits($postType);
             return count($hits);
         }
 
@@ -418,7 +418,7 @@ class SearchHelper {
         if(!($post instanceof PostModel)){
             $post = PostModel::unpackDbRecord($post);
         }
-        $item[LuceneHelper2::getIdField()] = array('keyword', 'pk_'.$post->getId());
+        $item[LuceneHelper::getIdField()] = array('keyword', 'pk_'.$post->getId());
         $item['post_type'] = array('keyword', $post->getType());
         $item['title'] = array('unstored', $post->getTitle(), 2);
         $content = apply_filters('the_content', $post->getContent());
@@ -468,8 +468,8 @@ class SearchHelper {
         $item = self::packPostToLuceneDoc($post);
 //        Util::print_r($item);
         self::getIndex();
-        $doc = LuceneHelper2::luceneDocFromArray($item);
-        LuceneHelper2::indexLuceneDoc($doc);
+        $doc = LuceneHelper::luceneDocFromArray($item);
+        LuceneHelper::indexLuceneDoc($doc);
 
         $post->updateMeta(self::META_FIELD_INDEXED, DateHelper::datetimeToDbStr(new \DateTime()));
 
@@ -486,7 +486,7 @@ class SearchHelper {
     public static function deletePost($postId, $suffix = ''){
         delete_post_meta($postId, self::META_FIELD_INDEXED);
         self::getIndex($suffix);
-        return LuceneHelper2::deleteById('pk_'.$postId);
+        return LuceneHelper::deleteById('pk_'.$postId);
     }
 
     /**
@@ -507,7 +507,7 @@ class SearchHelper {
             self::META_FIELD_INDEXED, $value);
 
         $wpdb->query($sql);
-        return LuceneHelper2::deleteByKey($key, $value);
+        return LuceneHelper::deleteByKey($key, $value);
     }
 
     /**
@@ -523,7 +523,7 @@ class SearchHelper {
             WHERE pm.meta_key = %s",
             self::META_FIELD_INDEXED);
         $wpdb->query($sql);
-        return LuceneHelper2::flush();
+        return LuceneHelper::flush();
     }
 
     /**
@@ -531,7 +531,7 @@ class SearchHelper {
      * @param string $indexId
      */
     public static function commit(){
-        LuceneHelper2::getInstance()->commit();
+        LuceneHelper::getInstance()->commit();
     }
 
     /**
@@ -540,7 +540,7 @@ class SearchHelper {
     public static function optimize(){
         $date = new \DateTime();
         OptionHelper::setOption('lastOptimized', DateHelper::datetimeToDbStr($date));
-        LuceneHelper2::getInstance()->optimize();
+        LuceneHelper::getInstance()->optimize();
     }
 
     /**
