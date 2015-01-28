@@ -28,6 +28,8 @@ module.exports = function(grunt) {
             },
             developmentNg:{
                 files:{
+                    'res/src/ng-modules/chayka-search-indexer.css': 'res/src/ng-modules/chayka-search-indexer.less',
+                    'res/src/ng-modules/chayka-search-engine.css': 'res/src/ng-modules/chayka-search-engine.less'
                 }
             }
         },
@@ -60,7 +62,9 @@ module.exports = function(grunt) {
             },
             ng: {
                 files: {
-                    'res/dist/ng-modules/<%= pkg.name %>.min.css': ['res/src/ng-modules/*.css']
+                    //'res/dist/ng-modules/<%= pkg.name %>.min.css': ['res/src/ng-modules/*.css']
+                    'res/dist/ng-modules/chayka-search-indexer.css': 'res/src/ng-modules/chayka-search-indexer.css',
+                    'res/dist/ng-modules/chayka-search-engine.css': 'res/src/ng-modules/chayka-search-engine.css'
                 }
             }
         },
@@ -95,8 +99,9 @@ module.exports = function(grunt) {
                     mangle: false
                 },
                 files: {
-                    'res/dist/js/application.js': resFiles.js,
-                    'res/dist/ng-modules/<%= pkg.name %>.min.js': resFiles.jsNg
+                    //'res/dist/js/application.js': resFiles.js,
+                    'res/dist/ng-modules/chayka-search-indexer.js': 'res/src/ng-modules/chayka-search-indexer.js',
+                    'res/dist/ng-modules/chayka-search-engine.js': 'res/src/ng-modules/chayka-search-engine.js'
                 }
             }
         },
@@ -122,11 +127,11 @@ module.exports = function(grunt) {
         },
         watch: {
             js: {
-                files: resFiles.js,
+                files: resFiles.js.concat(resFiles.jsNg),
                 tasks: ['js']
             },
             less: {
-                files:  resFiles.less,
+                files:  resFiles.less.concat(resFiles.lessNg),
                 tasks: ['css']
             },
             img: {

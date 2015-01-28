@@ -1,0 +1,26 @@
+<?php
+
+namespace Chayka\Search;
+
+$post = apply_filters('search_result_item', $this->post);
+//Util::print_r($post);
+$post->populateWpGlobals();
+?>
+<div class="bem-search_item post_type-<?php echo $post->getType()?>">
+    <div class="search_item_number"><?php echo $this->itemNumber?>.</div>
+    <div class="search_item_details">
+        <span class="search_item_label"><?php $obj = get_post_type_object($post->getType()); echo $obj->labels->singular_name;?></span>
+        <div class="search_item_title"><a href="<?php the_permalink(); ?>"><?php echo SearchHelper::highlight($post->getTitle()); ?></a></div>
+        <div class="search_item_excerpt"><?php echo SearchHelper::highlight($post->getExcerpt(true, false));?></div>
+        <div class="search_item_taxonomies">
+            <?php $terms = $post->getTerms(); if($terms) foreach($terms as $taxonomy=>$t):?>
+                <div class="search_item_terms <?php echo $taxonomy?>" <?php if(!count($t)):?>style="display: none;"<?php endif;?>>
+                    <span class="dashicons-before dashicons-tag"></span><span class="search_item_taxonomy"><?php $obj = get_taxonomy($taxonomy); echo $obj->label;?>: </span>
+                    <div class="search_item_terms_list"><?php echo SearchHelper::highlight(get_the_term_list( $post->getId(), $taxonomy, '', ', ', '' ));?></div>
+                </div>
+            <?php endforeach;?>
+        </div>
+        <div class="clearfloat"></div>
+    </div>
+    <?php echo $this->debug?$this->partial('search/search-item-debug.phtml', array('post'=>$post)):'';?>
+</div>

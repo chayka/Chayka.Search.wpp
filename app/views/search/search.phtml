@@ -1,0 +1,51 @@
+<?php namespace Chayka\Search;?>
+<div id="chayka-search-engine">
+<?php
+    echo $this->render('search/search-form.phtml');
+    $scopes = SearchHelper::getScopes();
+?>
+    <ul class="bem-search_areas">
+        <?php foreach ($scopes as $scope => $scopeData):?>
+            <li class="<?php if($scope == $this->scope){echo 'active';}?>"><a href="<?php //echo UrlHelper::search($this->term, $scope, 1, $this->debug);?>"><?php echo $scopeData['label']?></a></li>
+        <?php endforeach;?>
+    </ul>
+
+<?php
+
+if(count($this->vipPosts)):?>
+    <div class="bem-search_results_vip bem-lucene_highlight">
+        <h2><?php $this->__('Advertisement');?>:</h2>
+        <?php foreach($this->vipPosts as $post){
+            echo $this->partial('search/search-item-vip.phtml', array('post'=>$post, 'debug'=>$this->debug));
+        }?>
+    </div>
+<?php endif;
+if(count($this->posts)):?>
+    <div class="bem-search_results bem-lucene_highlight">
+        <?php
+        $itemNumber = ($this->getPagination()->getCurrentPage() - 1) * $this->itemsPerPage;
+        foreach($this->posts as $post){
+            $itemNumber++;
+            echo $this->partial('search/search-item.phtml', array('post'=>$post, 'itemNumber'=>$itemNumber, 'debug'=>$this->debug));
+        }
+
+        echo $this->getPagination()->render();
+        ?>
+    </div>
+
+<?php elseif($this->term): ?>
+    <div class="bem-search_not_found">
+        <h2><?php $this->__('Nothing was found on');?> <span class="term"><?php echo $this->term?></span></h2>
+        <div>
+            <?php $this->__('Try to formulate your query some other way');?> <?php if(SearchHelper::getScopes()): $this->__(' or change search area'); endif;?>.
+        </div>
+    </div>
+<?php endif;?>
+</div>
+<script>
+    (function($, angular){
+        $(document).ready(function(){
+            angular.bootstrap(document.getElementById('chayka-search-engine'), ['chayka-search-engine'])
+        });
+    }(window.jQuery, window.angular));
+</script>

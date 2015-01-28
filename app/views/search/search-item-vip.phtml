@@ -1,0 +1,6 @@
+<?php $this->post->populateWpGlobals();?>
+<div class="bem-search_item_vip post_type-<?php echo $this->post->getType()?>">
+    <div class="search_item_title"><a href="<?php $this->post->getHref(); ?>"><?php echo $this->post->getTitle(); ?></a></div>
+    <div class="search_item_excerpt"><?php echo $vipExcerpt = $this->post->getMeta('vip_excerpt');?></div>
+    <div class="clearfloat"></div>
+</div>

@@ -14,26 +14,9 @@ class AdminController extends Controller{
     }
 
     public function searchEngineAction(){
-        //	AclHelper::apiAuthRequired();
-
-        InputHelper::validateInput(true);
-
-		$valid = true;
-
-		if(!$valid){
-			JsonHelper::respondError("Scary error message");
-		}
-
-		try{
-			//	do something usefull
-			
-			$payload = array(
-			);
-
-			JsonHelper::respond($payload);
-
-		}catch(\Exception $e){
-			JsonHelper::respondException($e);
-		}
+		$this->enqueueScriptStyle('chayka-options-form');
+    }
+    public function indexerAction(){
+		$this->enqueueScriptStyle('chayka-search-indexer');
     }
 }

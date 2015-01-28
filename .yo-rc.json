@@ -52,11 +52,14 @@
     "controllers": {
       "Indexer": [],
       "Admin": [
-        "search-engine"
-      ]
+        "search-engine",
+        "indexer"
+      ],
+      "Search": []
     },
     "consolePages": [
-      "search-engine"
+      "search-engine",
+      "indexer"
     ]
   }
 }

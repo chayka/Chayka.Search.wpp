@@ -1,0 +1,34 @@
+<?php
+namespace Chayka\Search;
+
+$item = SearchHelper::packPostToLuceneDoc($this->post);
+//Util::print_r();
+?>
+<table class="bem-search_result_debug" rules="all">
+    <?php
+    foreach ($item as $field => $opts) {
+//            $encoding = $field == self::$idField?null:'UTF-8';
+        $type = 'unstored';
+        $value = $opts;
+        $boost = 1;
+        if (is_array($opts)) {
+            switch (count($opts)) {
+                case 2:
+                    list($type, $value) = $opts;
+                    $boost = 1;
+                    break;
+                case 3:
+                    list($type, $value, $boost) = $opts;
+                    break;
+            }
+        }?>
+        <tr>
+            <td class="lucene_field"><?php echo $field;?></td>
+            <td class="lucene_value"><?php echo SearchHelper::highlight($value);?></td>
+            <td class="lucene_type"><?php echo $type;?></td>
+            <td class="lucene_boost"><?php echo $boost;?></td>
+        </tr>
+    <?php   }
+    ?>
+    <tr></tr>
+</table>

@@ -26,51 +26,76 @@ use Zend_Search_Lucene_Search_QueryParser;
 
 class LuceneHelper {
 
-    protected static $instance= array();
+    /**
+     * @var array
+     */
+    protected static $instance = array();
+
+    /**
+     * @var MorphyFilter
+     */
     protected static $morphy;
+
+    /**
+     * @var string
+     */
     protected static $idField = "PK";
+
+    /**
+     * @var array
+     */
     protected static $queries;
+
+    /**
+     * @var Zend_Search_Lucene_Search_Query
+     */
     protected static $query;
+
+    /**
+     * @var Zend_Search_Lucene_Search_QueryLexer
+     */
     protected static $lexer;
 
     /**
      * Get index directory
      *
-     * @param string $suffix
+     * @param string $indexId
      * @return string
      */
-    public static function getDir($suffix = ''){
+    public static function getDir($indexId = ''){
         $indexFnDir = Plugin::getInstance()->getBasePath() . 'data/lucene/' . Util::serverName();
-        if($suffix){
-            $indexFnDir.='.'.$suffix;
+        if($indexId){
+            $indexFnDir.='.'.$indexId;
         }
         return $indexFnDir;
     }
 
     /**
      * Get Zend_Search_Lucene instance
-     * @param string $suffix
+     * @param string $indexId
      * @return Zend_Search_Lucene
      */
-    public static function getInstance($suffix = '') {
-        if (empty(self::$instance[$suffix])) {
+    public static function getInstance($indexId = '') {
+        if (empty(self::$instance[$indexId])) {
             self::initAnalyzer();
-            $indexFnDir = self::getDir($suffix);
-            self::$instance[$suffix] = new Zend_Search_Lucene($indexFnDir, !is_dir($indexFnDir));
+            $indexFnDir = self::getDir($indexId);
+            self::$instance[$indexId] = new Zend_Search_Lucene($indexFnDir, !is_dir($indexFnDir));
         }
 
-        return self::$instance[$suffix];
+        return self::$instance[$indexId];
     }
 
+    /**
+     * Analyzer Initialization
+     */
     public static function initAnalyzer(){
         $analyzer = Zend_Search_Lucene_Analysis_Analyzer::getDefault();
 
-        if(!($analyzer instanceof Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8_CaseInsensitive)){
+        if(!($analyzer instanceof Analyzer)){
 
             try {
                 Zend_Search_Lucene_Search_QueryParser::setDefaultEncoding('utf-8');
-                $analyzer = new Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8_CaseInsensitive();
-                // init morphy filter
+                $analyzer = new Analyzer();
                 $analyzer->addFilter(self::getMorphy());
                 Zend_Search_Lucene_Analysis_Analyzer::setDefault($analyzer);
 
@@ -98,13 +123,13 @@ class LuceneHelper {
      * Remove existing index.
      * Physically removes index folder.
      *
-     * @param string $suffix
+     * @param string $indexId
      * @return int
      */
-    public static function flush($suffix = ''){
-        $dir = self::getDir($suffix);
-        if(in_array($suffix, self::$instance)){
-            unset(self::$instance[$suffix]);
+    public static function flush($indexId = ''){
+        $dir = self::getDir($indexId);
+        if(isset(self::$instance[$indexId])){
+            unset(self::$instance[$indexId]);
         }
         return FsHelper::delete($dir);
     }
@@ -196,7 +221,7 @@ class LuceneHelper {
      * @param string $encoding
      * @return array(Zend_Search_Lucene_Search_QueryToken);
      */
-    public static function tokenize($str, $encoding = 'UTF-8'){
+    public static function tokenize($str, $encoding = 'utf-8'){
         $lexer = self::getLexer();
         return $lexer->tokenize($str, $encoding);
     }
@@ -206,11 +231,12 @@ class LuceneHelper {
      *
      * @param string $query
      * @param array|null $searchFields
+     * @param string $indexId
      * @return string Description
      */
-    public static function reorderWordsInQuery($query, $searchFields = null){
+    public static function reorderWordsInQuery($query, $searchFields = null, $indexId = ''){
         $tokens = self::tokenize($query);
-        $lucene = self::getInstance();
+        $lucene = self::getInstance($indexId);
         $morphy = self::getMorphy();
         $fieldNames = $searchFields?
             $searchFields:
@@ -276,7 +302,7 @@ class LuceneHelper {
     public static function luceneDocFromArray($item) {
         $doc = new Zend_Search_Lucene_Document();
         foreach ($item as $field => $opts) {
-            $encoding = 'UTF-8';
+            $encoding = 'utf-8';
             $type = 'unstored';
             $value = $opts;
             $boost = 1;
@@ -314,13 +340,14 @@ class LuceneHelper {
      *
      * @param $key
      * @param $value
+     * @param string $indexId
      * @return int
      * @throws \Zend_Search_Lucene_Exception
      */
-    public static function deleteByKey($key, $value) {
+    public static function deleteByKey($key, $value, $indexId = '') {
         $deleted = 0;
         if ($key && $value) {
-            $index = self::getInstance();
+            $index = self::getInstance($indexId);
             $term = new Zend_Search_Lucene_Index_Term($value, $key);
             $docIds = $index->termDocs($term);
             foreach ($docIds as $id) {
@@ -345,12 +372,14 @@ class LuceneHelper {
      * Index Lucene document (put document to index)
      *
      * @param Zend_Search_Lucene_Document $doc
+     * @param string $indexId
      */
-    public static function indexLuceneDoc($doc) {
-        $index = self::getInstance();
+    public static function indexLuceneDoc($doc, $indexId = '') {
+        $index = self::getInstance($indexId);
         $id = $doc->getFieldValue(self::$idField);
         try {
-            self::deleteById($id);
+            $d = self::deleteById($id);
+//            echo "d: $d, ";
             $index->addDocument($doc);
         } catch (\Exception $e) {
             die($e->getMessage());
@@ -359,16 +388,35 @@ class LuceneHelper {
 
     /**
      * Get number of documents in the index containing $term in the $field
+     * Heads Up: This function returns outdated info until index is optimized.
      *
-     * @param $term
-     * @param $field
+     * @param string $term
+     * @param string|null $field
+     * @param string $indexId
      * @return int
      */
-    public static function docFreq($term, $field){
+    public static function docFreq($term, $field = null, $indexId = ''){
         $term = new Zend_Search_Lucene_Index_Term($term, $field);
-        return self::getInstance()->docFreq($term);
+        return self::getInstance($indexId)->docFreq($term);
     }
 
+    /**
+     * This function actually searches for term, works longer than docFreq, but more stable
+     *
+     * @param $term
+     * @param null $field
+     * @return int
+     */
+    public static function docNumber($term, $field = null){
+        $q = $field? "($field:$term)": $term;
+        try {
+            $c = count(self::searchHits($q));
+            echo "[$q $c]";
+            return $c;
+        } catch (\Exception $e) {
+        }
+        return 0;
+    }
 //    public static function indexDocument(LuceneReadyInterface $document) {
 //        $item = $document->packLuceneDoc();
 //        $doc = self::luceneDocFromArray($item);
@@ -379,20 +427,19 @@ class LuceneHelper {
      * Search and return lucene hits
      *
      * @param $query
+     * @param string $indexId
      * @return array Zend_Search_Lucene_Search_QueryHit
      */
-    public static function searchHits($query) {
+    public static function searchHits($query, $indexId = '') {
 
         $hits = array();
 
         try {
-            $index = self::getInstance();
+            $index = self::getInstance($indexId);
             $hits = $index->find($query);
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
-
-//        self::$instance = null;
 
         return $hits;
     }
@@ -444,14 +491,28 @@ class LuceneHelper {
         }
 
         Zend_Search_Lucene_Analysis_Analyzer::getDefault()->reset();
-        return self::$query ? self::$query->htmlFragmentHighlightMatches($html, 'UTF-8') : $html;
+        return self::$query ? self::$query->htmlFragmentHighlightMatches($html, 'utf-8') : $html;
+    }
+
+}
+
+class Analyzer extends Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8_CaseInsensitive{
+    /**
+     * This is quick fix that enables cyrillic UTF-8 highlighting
+     *
+     * @param string $data
+     * @param string $encoding
+     * @return array
+     */
+    public function tokenize($data, $encoding = 'UTF-8'){
+        return parent::tokenize($data, $encoding);
     }
 
 }
 
 class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
 
-    private $morphy;
+    private $morphy = array();
 
     protected $cache = array();
 
@@ -459,31 +520,61 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
      * Morphy initialization
      */
     public function __construct() {
-        $dir = Plugin::getInstance()->getBasePath() . 'res/dictionaries';
-        $lang = 'ru_RU';
 
-        $this->morphy = new phpMorphy($dir, $lang);
     }
 
+    /**
+     * Get morphy for Russian
+     *
+     * @return phpMorphy
+     */
+    public function getMorphyRu(){
+        if(empty($this->morphy['ru'])){
+            $dir = Plugin::getInstance()->getBasePath() . 'res/morphy/ru';
+            $lang = 'ru_RU';
+
+            $this->morphy['ru'] = new phpMorphy($dir, $lang);
+        }
+
+        return $this->morphy['ru'];
+    }
+
+    /**
+     * Get morphy for Russian
+     *
+     * @return phpMorphy
+     */
+    public function getMorphyEn(){
+        if(empty($this->morphy['en'])){
+            $dir = Plugin::getInstance()->getBasePath() . 'res/morphy/en';
+            $lang = 'en_EN';
+
+            $this->morphy['en'] = new phpMorphy($dir, $lang);
+        }
+
+        return $this->morphy['en'];
+    }
 
     /**
      * Casts given word to the closest normalized form
      *
+     * @param phpMorphy $morphy
      * @param string $word
      * @param string $partOfSpeech
      * @param array $variants
      * @return null
      */
-    public function castVariants($word, $partOfSpeech, $variants) {
+    public function castVariants($morphy, $word, $partOfSpeech, $variants) {
         $forms = null;
         foreach ($variants as $v) {
-            $forms = $this->morphy->castFormByGramInfo($word, $partOfSpeech, $v, true);
+            $forms = $morphy->castFormByGramInfo($word, $partOfSpeech, $v, true);
             if (!empty($forms)) {
                 $min = 1000;
                 $index = 0;
 
                 foreach ($forms as $i => $form) {
                     $dif = levenshtein($word, $form);
+//                    echo "[$word, $form, $dif]\n";
                     if ($dif < $min) {
                         $min = $dif;
                         $index = $i;
@@ -492,7 +583,7 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
                         break;
                     }
                 }
-
+//                printf("==>%s\n", $forms[$index]);
                 return $forms[$index];
             }
         }
@@ -500,35 +591,88 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
         return null;
     }
 
+
     /**
-     * Gets normalized form for given word, null for non-indexed words
+     * Detect language
      *
-     * @param $word
+     * @param string $word
      * @return null|string
      */
-    public function normalizeWord($word){
-        $str = trim(mb_strtoupper($word, "utf-8"));
-        if (!preg_match('%^[А-Я]+$%u', $str)) {
-            return $str;
+    public function detectWordLanguage($word){
+
+        $lang = null;
+
+        if(preg_match('%^[А-Яа-я]+$%u', $word)){
+            $lang = 'ru';
+        }elseif(preg_match('%^[A-Za-z]+$%u', $word)){
+            $lang = 'en';
         }
+
+        return $lang;
+    }
+
+    /**
+     * @param string $word
+     * @return null|string
+     */
+    public function normalizeEnWord($word){
+        $morphy = $this->getMorphyEn();
+
         $omit = false;
-
-        $cache = Util::getItem($this->cache, $str);
-
-        if($cache){
-            return $cache;
+        $part = $morphy->getPartOfSpeech($word);
+        $form = $word;
+        $part = is_array($part) && count($part) ? $part[0] : '';
+        switch ($part) {
+            case 'NOUN':
+                $form = $this->castVariants($morphy, $word, $part, array(
+                    array('SG'),
+                    array('PL')
+                ));
+                break;
+                break;
+            case 'VERB':
+                $form = $this->castVariants($morphy, $word, $part, array(
+                    array('INF'),
+                    array('PRSA', '1', 'SG'),
+                ));
+                break;
+            case 'ADJECTIVE':
+            case 'ADVERB':
+            case 'NUMERAL':
+                break;
+            case 'ARTICLE':
+            case 'CONJ':
+            case 'PREP':
+            case 'INT':
+            case 'PART':
+                $omit = true;
+                $form = '---------';
+                break;
+            default:
+        }
+        if ($omit) {
+            return null;
         }
 
-//        $gramInfo = $this->morphy->getGramInfoMergeForms($str);
-//            print_r($gramInfo);
+        return $form?$form:$word;
 
-        $part = $this->morphy->getPartOfSpeech($str);
-        $form = $str;
+    }
+
+    /**
+     * @param string $word
+     * @return null|string
+     */
+    public function normalizeRuWord($word){
+        $morphy = $this->getMorphyRu();
+
+        $omit = false;
+        $part = $morphy->getPartOfSpeech($word);
+        $form = $word;
         $part = is_array($part) && count($part) ? $part[0] : '';
         switch ($part) {
             case 'С':
             case 'МС':
-                $form = $this->castVariants($str, $part, array(
+                $form = $this->castVariants($morphy, $word, $part, array(
                     array('ИМ', 'ЕД'),
                     array('ИМ', 'МН')
                 ));
@@ -536,19 +680,19 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
             case 'П':
             case 'МС-П':
             case 'ЧИСЛ-П':
-                $form = $this->castVariants($str, $part, array(
+                $form = $this->castVariants($morphy, $word, $part, array(
                     array('ИМ', 'ЕД', 'МР'),
                 ));
                 break;
             case 'ПРИЧАСТИЕ':
-                $form = $this->castVariants($str, $part, array(
+                $form = $this->castVariants($morphy, $word, $part, array(
                     array('ИМ', 'ЕД', 'МР'),
                 ));
                 break;
             case 'Г':
             case 'ДЕЕПРИЧАСТИЕ':
             case 'ВВОДН':
-                $form = $this->castVariants($str, 'ИНФИНИТИВ', array(
+                $form = $this->castVariants($morphy, $word, 'ИНФИНИТИВ', array(
                     array('ДСТ', 'СВ', 'НП'),
                     array('ДСТ', 'СВ', 'ПЕ'),
                     array('ДСТ', 'НС', 'НП'),
@@ -561,7 +705,7 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
                 break;
             case 'КР_ПРИЛ':
             case 'КР_ПРИЧАСТИЕ':
-                $form = $this->castVariants($str, $part, array(
+                $form = $this->castVariants($morphy, $word, $part, array(
                     array('ЕД', 'СР'),
                     array('МН'),
                 ));
@@ -586,7 +730,37 @@ class MorphyFilter extends Zend_Search_Lucene_Analysis_TokenFilter {
             return null;
         }
 
-        $res = $form?$form:$str;
+        return $form?$form:$word;
+
+    }
+
+    /**
+     * Gets normalized form for given word, null for non-indexed words
+     *
+     * @param $word
+     * @return null|string
+     */
+    public function normalizeWord($word){
+        $str = trim(mb_strtoupper($word, "utf-8"));
+
+        $lang = $this->detectWordLanguage($word);
+
+        $cache = Util::getItem($this->cache, $str);
+
+        if($cache){
+            return $cache;
+        }
+
+        $res = $str;
+
+        switch($lang){
+            case 'en':
+                $res = $this->normalizeEnWord($str);
+                break;
+            case 'ru':
+                $res = $this->normalizeRuWord($str);
+                break;
+        }
 
         $this->cache[$str] = $res;
 

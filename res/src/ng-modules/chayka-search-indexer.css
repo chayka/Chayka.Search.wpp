@@ -1,0 +1,51 @@
+.chayka_search-indexer .control_panel {
+  max-width: 320px;
+  font-size: 15px;
+}
+.chayka_search-indexer .control_panel > table {
+  width: 100%;
+  border: 1px solid #2e2e2e;
+  margin-bottom: 1em;
+}
+.chayka_search-indexer .control_panel > table tbody .cell-indexed {
+  font-size: 70%;
+  line-height: normal;
+}
+.chayka_search-indexer .control_panel > table tfoot .cell-indexed {
+  font-size: 70%;
+  line-height: normal;
+}
+.chayka_search-indexer .control_panel > table tr td {
+  padding: .4ex;
+  vertical-align: top;
+}
+.chayka_search-indexer .control_panel > table tr .cell-post_type {
+  overflow-x: hidden;
+}
+.chayka_search-indexer .control_panel > table tr .cell-indexed {
+  text-align: center;
+}
+.chayka_search-indexer .control_panel > table tr .cell-controls {
+  min-width: 100px;
+}
+.chayka_search-indexer .control_panel > table tr .cell-controls button.dashicons-before {
+  line-height: normal;
+  padding: 4px;
+}
+.chayka_search-indexer .box_optimize {
+  clear: both;
+  border-top: 1px dashed gray;
+  margin: 1em 0;
+  padding-top: 1em;
+  /*text-align: right;*/
+}
+.chayka_search-indexer .box_optimize .optimize_label {
+  line-height: 20px;
+  font-size: 13px;
+}
+.chayka_search-indexer .box_optimize .optimize_label .optimize_value {
+  font-weight: bold;
+}
+.chayka_search-indexer .box_optimize button {
+  float: right;
+}

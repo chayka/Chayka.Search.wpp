@@ -3,7 +3,9 @@
 namespace Chayka\Search;
 
 use Chayka\Helpers\DateHelper;
+use Chayka\Helpers\HttpHeaderHelper;
 use Chayka\Helpers\Util;
+use Chayka\WP\Helpers\AclHelper;
 use Chayka\WP\Models\PostModel;
 use Chayka\WP\MVC\Controller;
 use Chayka\Helpers\InputHelper;
@@ -13,9 +15,13 @@ class IndexerController extends Controller{
 
     public function init(){
         // NlsHelper::load('main');
-        // InputHelper::captureInput();
+        AclHelper::apiAuthRequired();
+        InputHelper::captureInput();
     }
 
+    /**
+     * This action is triggered when post is saved in admin area
+     */
     public function indexPostAction(){
         if(!SearchHelper::isIndexerEnabled()){
             return;
@@ -39,6 +45,9 @@ class IndexerController extends Controller{
         }
     }
 
+    /**
+     * This action is triggered when post is deleted in admin area
+     */
     public function deletePostAction(){
         if(!SearchHelper::isIndexerEnabled()){
             return;
@@ -56,6 +65,10 @@ class IndexerController extends Controller{
 
     }
 
+    /**
+     * This action is called when you index posts in bulk using admin area indexer.
+     * Both 'build index' and 'update index' are served here.
+     */
     public function indexPostsAction(){
         set_time_limit(0);
         global $wpdb;
@@ -69,6 +82,7 @@ class IndexerController extends Controller{
             $now = new \DateTime();
             $start = $_SESSION['wpp_BRX_SearchEngine.indexStarted'] = DateHelper::datetimeToDbStr($now);
             $payload['start'] = DateHelper::datetimeToJsonStr($now);
+            SearchHelper::optimize();
         }
         if($postTypes){
             $postTypes = explode(',', $postTypes);
@@ -107,9 +121,11 @@ class IndexerController extends Controller{
                 $payload['stop'] = DateHelper::datetimeToJsonStr(new \DateTime());
             }
         }catch(\Exception $e){
-            JsonHelper::respond(null, $e->getCode(), $e->getMessage());
+            JsonHelper::respondException($e);
         }
-        SearchHelper::commit();
+        if(!$payload['posts_left']){
+            SearchHelper::commit();
+        }
         foreach($postTypes as $postType){
             $payload['posts_indexed'][$postType] = SearchHelper::postsInIndex($postType);
         }
@@ -117,9 +133,11 @@ class IndexerController extends Controller{
 
     }
 
+    /**
+     * This action is triggered when you drop index on some post type or the whole one from admin area Indexer.
+     */
     public function deletePostsAction(){
         set_time_limit(0);
-        global $wpdb;
         $postTypes = InputHelper::getParam('postType', '');
         if($postTypes){
             $postTypes = explode(',', $postTypes);
@@ -127,26 +145,34 @@ class IndexerController extends Controller{
             foreach ($postTypes as $postType) {
                 $total-=SearchHelper::postsInIndex($postType);
             }
-            if($total >= 0){
+            if($total > 0){
                 foreach ($postTypes as $postType) {
                     SearchHelper::deletePostsByKey('post_type', $postType);
                 }
             }else{
                 SearchHelper::flush();
             }
+            SearchHelper::optimize();
             JsonHelper::respond(SearchHelper::getPostTypeInfo($postTypes));
         }else{
             SearchHelper::flush();
+            SearchHelper::optimize();
             JsonHelper::respond(SearchHelper::getPostTypeInfo());
         }
 
     }
 
+    /**
+     * Quick index flush
+     */
     public function flushAction(){
         SearchHelper::flush();
         echo SearchHelper::postsInIndex();
     }
 
+    /**
+     * This action is called when user enables postType for indexing in Indexer admin area
+     */
     public function enableTypeAction(){
         $postType = InputHelper::getParam('postType');
         if($postType){
@@ -155,6 +181,9 @@ class IndexerController extends Controller{
         JsonHelper::respond(SearchHelper::getSearchEnabledPostTypes());
     }
 
+    /**
+     * This action is called when user disables postType for indexing in Indexer admin area
+     */
     public function disableTypeAction(){
         $postType = InputHelper::getParam('postType');
         if($postType){
@@ -163,12 +192,71 @@ class IndexerController extends Controller{
         JsonHelper::respond(SearchHelper::getSearchEnabledPostTypes());
     }
 
+    /**
+     * This action allows to optimize index
+     */
     public function optimizeAction(){
         set_time_limit(0);
         SearchHelper::optimize();
         $dbDate = OptionHelper::getOption('lastOptimized');
         $date = DateHelper::dbStrToDatetime($dbDate);
-        JsonHelper::respond(array('last_optimized'=>$date));
+        JsonHelper::respond(array(
+            'last_optimized'=>$date,
+            'stats' => SearchHelper::getPostTypeInfo()
+        ));
+    }
+
+    /**
+     * This action outputs index state info
+     */
+    public function infoAction(){
+        $dbDate = OptionHelper::getOption('lastOptimized');
+        $date = DateHelper::dbStrToDatetime($dbDate);
+        JsonHelper::respond(array(
+            'last_optimized'=>$date,
+            'stats' => SearchHelper::getPostTypeInfo()
+        ));
+    }
+
+    /**
+     * This is the action for the morphy word analysis
+     */
+    public function morphyAction(){
+        $word = InputHelper::checkParam('word')->required()->getValue();
+        InputHelper::validateInput(true);
+        $filter = new MorphyFilter();
+        $word = trim(mb_strtoupper($word, "utf-8"));
+        $part = InputHelper::getParam('part');
+        $gram = InputHelper::getParam('gram');
+        if($gram){
+            $gram = explode(',', $gram);
+        }
+
+        $lang = $filter->detectWordLanguage($word);
+        if($lang){
+            $morphy = null;
+            switch($lang){
+                case 'ru':
+                    $morphy = $filter->getMorphyRu();
+                    break;
+                case 'en':
+                    $morphy = $filter->getMorphyEn();
+                    break;
+            }
+            $partOfSpeech = $morphy->getPartOfSpeech($word);
+            $forms = $morphy->getAllFormsWithAncodes($word);
+            $cast = $gram?$morphy->castFormByGramInfo($word, $part?$part:$partOfSpeech, $gram, true):'';
+            $form = $filter->normalizeWord($word);
+            $res = [
+                'lang'=>$lang,
+                'part'=>$partOfSpeech,
+                'cast'=>$cast,
+                'normalized'=>$form,
+                'forms'=>$forms
+            ];
+            Util::print_r($res);
+        }
+        JsonHelper::respond();
     }
 
 }

@@ -1,13 +1,13 @@
 <h2>Search Engine</h2>
 
 <div data-ng-app="chayka-options-form" data-ng-cloak>
-    <div data-ng-controller="optionsForm" data-ng-init="namespace = 'Chayka\Search'">
+    <div data-ng-controller="optionsForm" data-ng-init="namespace = 'Chayka.Search'">
         <form data-form-validator="validator" novalidate="novalidate">
-            <div class="form_field stretch highlight" data-form-field="highlight">
+            <div class="form_field stretch highlight_found" data-form-field="highlight">
                 <label class="width70">Highlight</label><select data-ng-init="options.highlight='0'; highlightOptions = {'0':'No','1':'Yes'}" data-ng-model="options.highlight" data-ng-options="key as value for (key, value) in highlightOptions" title="Highlight"></select>
             </div>
             <div class="form_field fullsize template" data-form-field="template">
-                <label class="">Search results page template</label><input type="text" data-ng-init="options.template=''" data-ng-model="options.template" title="Search results page template"/>
+                <label class="">Search page template (theme dir rel.)</label><input type="text" data-ng-init="options.template=''" data-ng-model="options.template" title="Search results page template"/>
             </div>
             <div class="form_field stretch items_per_iteration" data-form-field="itemsPerIteration">
                 <label class="width70">Items per iteration</label><input type="text" data-ng-init="options.itemsPerIteration='10'" data-ng-model="options.itemsPerIteration" title="Items per iteration"/>
@@ -28,7 +28,10 @@
                 <label class="">Search areas (area;label;[post_type1,pt2])</label><textarea data-ng-init="options.searchAreas=''" data-ng-model="options.searchAreas" title="Search areas (area;label;[post_type1,pt2])"></textarea>
             </div>
 
-        <!-- chayka: fields -->
+            <!-- chayka: fields -->
+            <div class="buttons">
+                <button class="button button-primary button-large" data-ng-click="saveOptions();">Save</button>
+            </div>
         </form>
     </div>
 </div>

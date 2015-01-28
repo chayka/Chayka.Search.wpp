@@ -20,12 +20,11 @@ class SearchHelper {
 
     /**
      * Get index
-     *
-     * @param string $suffix
      * @return \Zend_Search_Lucene
+     * @internal param string $indexId
      */
-    public static function getIndex($suffix = ''){
-        return LuceneHelper::getInstance($suffix);
+    public static function getIndex(){
+        return LuceneHelper2::getInstance();
     }
 
     /**
@@ -35,7 +34,7 @@ class SearchHelper {
      * @return array
      */
     public static function getSearchEnabledPostTypes(){
-        if(empty(self::$searchEnabled)){
+        if(!isset(self::$searchEnabled)){
             $value = OptionHelper::getOption(self::SITE_OPTION_SEARCH_ENABLED, '');
             self::$searchEnabled = $value?explode(',', $value):array();
         }
@@ -213,12 +212,43 @@ class SearchHelper {
     }
 
     /**
+     * Load search query samples setup in admin area.
+     *
+     * @return array|null
+     */
+    public static function getQuerySamples(){
+        $samples = OptionHelper::getOption('samples');
+        $samples = explode("\n", $samples);
+        return $samples;
+    }
+
+    /**
+     * Get one random search query sample setup in admin area.
+     *
+     * @return string
+     */
+    public static function getQuerySampleRandom(){
+        $samples = self::getQuerySamples();
+        return $samples && count($samples)?$samples[array_rand($samples)]:'';
+    }
+
+    /**
+     * Get Search page WP template setup in admin area
+     *
+     * @return null|string
+     */
+    public static function getPageTemplate(){
+        $t = OptionHelper::getOption('template');
+        return $t?get_stylesheet_directory().'/'.$t:null;
+    }
+
+    /**
      * Set search results limit. 0 - unlimited.
      *
      * @param int $limit
      */
     public static function setLimit($limit = 0){
-        LuceneHelper::setLimit($limit);
+        LuceneHelper2::setLimit($limit);
     }
 
     /**
@@ -228,7 +258,7 @@ class SearchHelper {
      * @param string|null $field
      */
     public static function setDefaultSearchField($field = null){
-        LuceneHelper::getInstance()->setDefaultSearchField($field);
+        LuceneHelper2::getInstance()->setDefaultSearchField($field);
     }
 
     /**
@@ -255,7 +285,7 @@ class SearchHelper {
 
         self::getIndex();
 
-        $reorderedQuery = LuceneHelper::reorderWordsInQuery($searchQuery, $searchField?array($searchField):null);
+        $reorderedQuery = LuceneHelper2::reorderWordsInQuery($searchQuery, $searchField?array($searchField):null);
 
         $strQuery = '('.$reorderedQuery.')';
 
@@ -265,10 +295,10 @@ class SearchHelper {
 
         self::setDefaultSearchField($searchField);
 
-        $luceneQuery = LuceneHelper::parseQuery($strQuery);
-        $hits = LuceneHelper::searchHits($luceneQuery);
+        $luceneQuery = LuceneHelper2::parseQuery($strQuery);
+        $hits = LuceneHelper2::searchHits($luceneQuery);
 
-        LuceneHelper::setQuery($searchQuery);
+        LuceneHelper2::setQuery($searchQuery);
 
         self::setDefaultSearchField(null);
 
@@ -282,7 +312,7 @@ class SearchHelper {
 //            $scores = array();
             foreach($hits as $hit){
                 try{
-                    $id = substr($hit->getDocument()->getFieldValue(LuceneHelper::getIdField()), 3);
+                    $id = substr($hit->getDocument()->getFieldValue(LuceneHelper2::getIdField()), 3);
                     $ids[]=$id;
                 }catch(\Exception $e){
                     die($e->getMessage());
@@ -317,7 +347,7 @@ class SearchHelper {
             }
             $posts = $tmp;
         }
-        LuceneHelper::getInstance()->resetTermsStream();
+        LuceneHelper2::getInstance()->resetTermsStream();
 
         return $posts;
     }
@@ -340,7 +370,7 @@ class SearchHelper {
      */
     public static function highlight($html, $query=''){
         return OptionHelper::getOption('highlight')?
-            LuceneHelper::highlight($html, $query):
+            LuceneHelper2::highlight($html, $query):
             $html;
     }
 
@@ -352,12 +382,22 @@ class SearchHelper {
      * @return int
      */
     public static function postsInIndex($postType = ''){
-        self::getIndex();
+//        self::getIndex();
         if($postType){
-            return LuceneHelper::docFreq($postType, 'post_type');
+//            Util::print_r($postType);
+//            return LuceneHelper2::docFreq($postType, 'post_type');
+//            $lquery = LuceneHelper2::parseQuery(
+//                sprintf('post_type: %s', $postType)
+//                sprintf('%s', $postType)
+//            );
+//            $hits = LuceneHelper2::searchHits($lquery);
+            self::commit();
+            LuceneHelper2::getInstance()->setDefaultSearchField('post_type');
+            $hits = LuceneHelper2::searchHits($postType);
+            return count($hits);
         }
 
-        return LuceneHelper::getInstance()->numDocs();
+        return self::getIndex()->numDocs();
     }
 
     /**
@@ -378,10 +418,11 @@ class SearchHelper {
         if(!($post instanceof PostModel)){
             $post = PostModel::unpackDbRecord($post);
         }
-        $item[LuceneHelper::getIdField()] = array('keyword', 'pk_'.$post->getId());
+        $item[LuceneHelper2::getIdField()] = array('keyword', 'pk_'.$post->getId());
         $item['post_type'] = array('keyword', $post->getType());
         $item['title'] = array('unstored', $post->getTitle(), 2);
-        $item['content'] = array('unstored', wp_strip_all_tags($post->getContent()));
+        $content = apply_filters('the_content', $post->getContent());
+        $item['content'] = array('unstored', wp_strip_all_tags($content));
         $item['user_id'] = array('keyword', 'user_'.$post->getUserId());
         $taxonomies = get_taxonomies();
         foreach ($taxonomies as $taxonomy){
@@ -425,9 +466,10 @@ class SearchHelper {
         }
 
         $item = self::packPostToLuceneDoc($post);
+//        Util::print_r($item);
         self::getIndex();
-        $doc = LuceneHelper::luceneDocFromArray($item);
-        LuceneHelper::indexLuceneDoc($doc);
+        $doc = LuceneHelper2::luceneDocFromArray($item);
+        LuceneHelper2::indexLuceneDoc($doc);
 
         $post->updateMeta(self::META_FIELD_INDEXED, DateHelper::datetimeToDbStr(new \DateTime()));
 
@@ -438,12 +480,13 @@ class SearchHelper {
      * Delete post from index (not from WP)
      *
      * @param $postId
+     * @param string $suffix
      * @return int
      */
-    public static function deletePost($postId){
+    public static function deletePost($postId, $suffix = ''){
         delete_post_meta($postId, self::META_FIELD_INDEXED);
-        self::getIndex();
-        return LuceneHelper::deleteById('pk_'.$postId);
+        self::getIndex($suffix);
+        return LuceneHelper2::deleteById('pk_'.$postId);
     }
 
     /**
@@ -464,7 +507,7 @@ class SearchHelper {
             self::META_FIELD_INDEXED, $value);
 
         $wpdb->query($sql);
-        return LuceneHelper::deleteByKey($key, $value);
+        return LuceneHelper2::deleteByKey($key, $value);
     }
 
     /**
@@ -480,14 +523,15 @@ class SearchHelper {
             WHERE pm.meta_key = %s",
             self::META_FIELD_INDEXED);
         $wpdb->query($sql);
-        return LuceneHelper::flush();
+        return LuceneHelper2::flush();
     }
 
     /**
      * Commit index changes
+     * @param string $indexId
      */
     public static function commit(){
-        LuceneHelper::getInstance()->commit();
+        LuceneHelper2::getInstance()->commit();
     }
 
     /**
@@ -496,7 +540,7 @@ class SearchHelper {
     public static function optimize(){
         $date = new \DateTime();
         OptionHelper::setOption('lastOptimized', DateHelper::datetimeToDbStr($date));
-        LuceneHelper::getInstance()->optimize();
+        LuceneHelper2::getInstance()->optimize();
     }
 
     /**

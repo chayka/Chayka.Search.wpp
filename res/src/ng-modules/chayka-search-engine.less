@@ -1,0 +1,166 @@
+#chayka-search-engine {
+    .bem-search_form {
+        margin: 1em 0 3em;
+        background-color: #f8f8f8;
+        padding: 2em;
+        border-radius: 3px;
+
+        .row_query {
+            input.search_query {
+                //            width: 80%;
+                //            height: 30px;
+                //            padding: 0 1ex ;
+                //            border-radius: 3px;
+                //            border: 1px solid gray;
+            }
+
+        }
+
+        .row_sample {
+            padding-left: 3px;
+            font-size: 0.9em;
+            .sample_label {
+
+            }
+            .sample_value {
+                border-bottom: 1px dotted black;
+                cursor: pointer;
+            }
+        }
+
+        .row_search_area {
+            margin-top: 1em;
+            > label {
+
+            }
+            .search_area_options {
+                label {
+                    margin-left: 1ex;
+                    input[type=radio] {
+                        margin-right: 1ex;
+                    }
+                }
+
+                br {
+                    display: none;
+                }
+            }
+        }
+    }
+
+    .bem-search_results_vip {
+        border: 1px dotted gray;
+        margin-bottom: 2em;
+        padding: 1em;
+
+        h2 {
+            font-size: 12px;
+            line-height: 1.1em;
+            padding: 0;
+            margin: 0;
+        }
+
+        .bem-search_item_vip {
+            margin-top: 1em;
+            background-color: #fafae8;
+            padding: 0 1ex;
+            border-radius: 4px;
+
+            .search_item_title {
+                font-size: 0.9em;
+                font-weight: bold;
+                a {
+
+                }
+            }
+            .search_item_excerpt {
+                font-size: 0.85em;
+                /*            margin-bottom: 1em;*/
+
+            }
+        }
+
+    }
+
+    .bem-search_results {
+        .bem-search_item {
+            margin-bottom: 2em;
+
+            .search_item_number {
+                float: left;
+                width: 4em;
+                line-height: 1.5em;
+            }
+
+            .search_item_details {
+                padding-left: 4em;
+
+                .search_item_label {
+                    float: right;
+                    background-color: gray;
+                    color: white;
+                    font-weight: bold;
+                    display: block;
+                    line-height: 1em;
+                    padding: 2px 0.5ex;
+                    margin: 2px 0 1em 2em;
+                    border-radius: 3px;
+                    box-shadow: 0 0 2px -1px;
+                    text-shadow: 1px 1px 2px -1px;
+                }
+                .search_item_title {
+                    font-size: 1.1em;
+                    font-weight: bold;
+                    line-height: 1.4em;
+                    margin-bottom: 0.6em;
+                    a {
+
+                    }
+                }
+                .search_item_excerpt {
+                    margin-bottom: 1em;
+
+                }
+                .search_item_excerpt {
+
+                }
+                .search_item_taxonomies {
+                    .search_item_terms {
+                        line-height: 16px;
+                        float: left;
+                        margin-right: 10px;
+                        font: 0.9em Verdana;
+
+                        .ui-icon {
+                            float: left;
+                            margin-right: 0.5em;
+                        }
+                        .search_item_taxonomy {
+                            float: left;
+                            margin-right: 0.5em;
+                        }
+                        .search_item_terms_list {
+                            display: inline;
+                        }
+                    }
+
+                }
+            }
+        }
+
+    }
+    .bem-lucene_highlight {
+        b[style] {
+            color: black;
+            background-color: yellow !important;
+            line-height: 1em;
+            padding: 0 0.5ex;
+            border-radius: 3px;
+            box-shadow: 0 0 2px -1px;
+        }
+    }
+
+    .clearfloat{
+        clear: both;
+    }
+}

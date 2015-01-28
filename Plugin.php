@@ -2,6 +2,8 @@
 
 namespace Chayka\Search;
 
+use Chayka\Helpers\HttpHeaderHelper;
+use Chayka\Helpers\InputHelper;
 use Chayka\WP;
 
 class Plugin extends WP\Plugin{
@@ -13,6 +15,8 @@ class Plugin extends WP\Plugin{
     public static function init(){
         if(!static::$instance){
             static::$instance = $app = new self(__FILE__, array(
+                'indexer',
+                'search',
                 /* chayka: init-controllers */
             ));
             $app->dbUpdate(array());
@@ -40,7 +44,13 @@ class Plugin extends WP\Plugin{
 
         $this->addAction('lucene_enable_indexer', 'enableIndexer', 10);
         $this->addAction('lucene_disable_indexer', 'disableIndexer', 10);
-        $this->addAction('parse_request', 'parseRequest');
+        $this->addAction('parse_request', function(){
+            if(isset($_REQUEST['s'])){
+                $s = InputHelper::getParam('s');
+                $url = '/search/?q='.  urldecode($s);
+                HttpHeaderHelper::redirect($url);
+            }
+        });
     	/* chayka: registerActions */
     }
 
@@ -62,6 +72,11 @@ class Plugin extends WP\Plugin{
         $this->setResSrcDir('src/');
         $this->setResDistDir('dist/');
 
+        $this->registerScript('chayka-search-indexer', 'ng-modules/chayka-search-indexer.js', array('chayka-wp-admin', 'chayka-spinners', 'chayka-ajax', 'chayka-modals', 'chayka-utils'));
+        $this->registerStyle('chayka-search-indexer', 'ng-modules/chayka-search-indexer.css', array('chayka-wp-admin', 'chayka-spinners', 'chayka-modals'));
+
+        $this->registerScript('chayka-search-engine', 'ng-modules/chayka-search-engine.js', array('chayka-spinners', 'chayka-ajax', 'chayka-utils'));
+        $this->registerStyle('chayka-search-engine', 'ng-modules/chayka-search-engine.css', array('chayka-spinners', 'dashicons'));
 		/* chayka: registerResources */
     }
 
@@ -70,19 +85,18 @@ class Plugin extends WP\Plugin{
      */
     public function registerRoutes() {
         $this->addRoute('default');
+        $this->addRoute('search', 'search/?scope/*', array('controller' => 'search', 'action' => 'search', 'scope' => 'all'));
+        $this->addRoute('index-post', 'indexer/index-post/:postId/*', array('controller' => 'indexer', 'action' => 'index-post'));
+        $this->addRoute('delete-post', 'indexer/delete-post/:postId/*', array('controller' => 'indexer', 'action' => 'delete-post'));
     }
 
     /**
      * Registering console pages
      */
     public function registerConsolePages(){
-//        $this->addConsolePage('Поисковая система', 'update_core', 'chayka-search-admin',
-//            '/admin/indexer');
-//
-//        $this->addConsoleSubPage('chayka-search-admin',
-//            'Настройка', 'update_core', 'chayka-search-setup',
-//            '/admin/setup-search-engine');
         $this->addConsolePage('Search Engine', 'update_core', 'search-engine', '/admin/search-engine', 'dashicons-search', '80');
+        $this->addConsoleSubPage('search-engine', 'Indexer', 'update_core', 'indexer', '/admin/indexer');
+
 
         /* chayka: registerConsolePages */
     }
@@ -95,7 +109,7 @@ class Plugin extends WP\Plugin{
     }
 
     /**
-     * Custom Sidebars are to be added here via $this->registerSidbar();
+     * Custom Sidebars are to be added here via $this->registerSidebar();
      */
     public function registerSidebars() {
 		/* chayka: registerSidebars */
@@ -107,10 +121,10 @@ class Plugin extends WP\Plugin{
      * This is a hook for save_post
      *
      * @param integer $postId
-     * @param WP_Post $post
+     * @param \WP_Post $post
      */
     public function savePost($postId, $post){
-        
+        $this->processRequest('/indexer/index-post/'.$postId);
     }
     
     /**
@@ -119,7 +133,7 @@ class Plugin extends WP\Plugin{
      * @param integer $postId
      */
     public function deletePost($postId){
-        
+        $this->processRequest('/indexer/delete-post/'.$postId);
     }
     
     /**

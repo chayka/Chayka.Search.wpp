@@ -1,0 +1,25 @@
+<?php namespace Chayka\Search; ?>
+<div data-ng-controller="searchForm" class="bem-search_form" data-ng-init="searchScope ='<?php $this->escape($this->scope);?>'; searchQuery = '<?php $this->escape($this->term);?>';">
+    <form action="{{ getSearchUri() }}">
+        <div class="row_query">
+            <input data-ng-model="searchQuery" name="q" value="<?php $this->escape($this->term);?>" class="search_query" placeholder="<?php $sample = SearchHelper::getQuerySampleRandom(); echo $this->escape($sample?$this->_("Type here and hit enter (e.g '%s')", $sample):$this->_("Type here and hit enter..."));?>" title="Search"/>
+            <button class="dashicons-before dashicons-search"><?php $this->__('Search');?></button>
+        </div>
+    </form>
+    <?php
+    $scopes = SearchHelper::getScopes();
+    $options = array();
+    foreach ($scopes as $name=>$data){
+        $options[$name]=$data['label'];
+    }
+    ?>
+    <div class="row_search_area" <?php $this->hidden(count($options)<=1);?> >
+        <label><?php $this->__('Search in:');?></label>
+        <span class="search_area_options" data-attach-point="boxScopeOptions">
+            <?php foreach($options as $value => $label):?>
+                <label><input type="radio" data-ng-model="searchScope" value="<?php echo $this->escape($value);?>"><?php $this->__($label);?></label>
+            <?php endforeach;?>
+        </span>
+    </div>
+
+</div>
