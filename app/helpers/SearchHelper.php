@@ -158,7 +158,7 @@ class SearchHelper {
      */
     public static function getScopes(){
         if(!self::$scopes){
-            $raw = OptionHelper::getOption('areas');
+            $raw = OptionHelper::getOption('searchAreas');
             $rawStrings = preg_split('%\r?\n%', $raw);
             foreach ($rawStrings as $string) {
                 $raws = preg_split('%\s*;\s*%', $string);
@@ -217,7 +217,7 @@ class SearchHelper {
      * @return array|null
      */
     public static function getQuerySamples(){
-        $samples = OptionHelper::getOption('samples');
+        $samples = OptionHelper::getOption('searchSamples');
         $samples = explode("\n", $samples);
         return $samples;
     }
@@ -273,9 +273,15 @@ class SearchHelper {
      * @return array
      */
     public static function searchPosts($searchQuery, $scope, $page = 1, $itemsPerPage = 5, $searchField = null, $shuffle = false){
+        $strQuery = '';
         $postTypes = self::resolvePostTypes($scope);
         if($postTypes){
             $postTypes = array_intersect(self::getSearchEnabledPostTypes(), $postTypes);
+            $normalizedPostTypes = array();
+            foreach($postTypes as $postType){
+                $normalizedPostTypes[] = self::normalizePostType($postType);
+            }
+            $strQuery = sprintf('(post_type: %s) AND ', join(' ', $normalizedPostTypes));
         }else{
             $postTypes = self::getSearchEnabledPostTypes();
         }
@@ -287,14 +293,13 @@ class SearchHelper {
 
         $reorderedQuery = LuceneHelper::reorderWordsInQuery($searchQuery, $searchField?array($searchField):null);
 
-        $strQuery = '('.$reorderedQuery.')';
+        $strQuery .= '('.$reorderedQuery.')';
 
         if('vip_keywords' == $searchField){
             $strQuery .= ' AND (vip_search_status: VS_YES)';
         }
 
         self::setDefaultSearchField($searchField);
-
         $luceneQuery = LuceneHelper::parseQuery($strQuery);
         $hits = LuceneHelper::searchHits($luceneQuery);
 
@@ -382,22 +387,27 @@ class SearchHelper {
      * @return int
      */
     public static function postsInIndex($postType = ''){
-//        self::getIndex();
         if($postType){
-//            Util::print_r($postType);
-//            return LuceneHelper::docFreq($postType, 'post_type');
-//            $lquery = LuceneHelper::parseQuery(
-//                sprintf('post_type: %s', $postType)
-//                sprintf('%s', $postType)
-//            );
-//            $hits = LuceneHelper::searchHits($lquery);
-            self::commit();
+//            self::commit();
             LuceneHelper::setDefaultSearchField('post_type');
-            $hits = LuceneHelper::searchHits($postType);
+            $hits = LuceneHelper::searchHits(self::normalizePostType($postType));
             return count($hits);
         }
 
         return self::getIndex()->numDocs();
+    }
+
+    /**
+     * This function normalizes post type.
+     * It allows to avoid splitting into several word (portfolio-item -> portfolio item)
+     * and prevents it from finding in the search when post does not contain searched word
+     * but post type does.
+     *
+     * @param $postType
+     * @return mixed
+     */
+    public static function normalizePostType($postType){
+        return 'pt_'.preg_replace('%\W%', '_', $postType);
     }
 
     /**
@@ -419,7 +429,7 @@ class SearchHelper {
             $post = PostModel::unpackDbRecord($post);
         }
         $item[LuceneHelper::getIdField()] = array('keyword', 'pk_'.$post->getId());
-        $item['post_type'] = array('keyword', $post->getType());
+        $item['post_type'] = array('keyword', self::normalizePostType($post->getType()));
         $item['title'] = array('unstored', $post->getTitle(), 2);
         $content = apply_filters('the_content', $post->getContent());
         $item['content'] = array('unstored', wp_strip_all_tags($content));
@@ -528,7 +538,6 @@ class SearchHelper {
 
     /**
      * Commit index changes
-     * @param string $indexId
      */
     public static function commit(){
         LuceneHelper::getInstance()->commit();

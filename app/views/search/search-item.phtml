@@ -6,7 +6,7 @@ $post = apply_filters('search_result_item', $this->post);
 //Util::print_r($post);
 $post->populateWpGlobals();
 ?>
-<div class="bem-search_item post_type-<?php echo $post->getType()?>">
+<div class="search_item post_type-<?php echo $post->getType()?>">
     <div class="search_item_number"><?php echo $this->itemNumber?>.</div>
     <div class="search_item_details">
         <span class="search_item_label"><?php $obj = get_post_type_object($post->getType()); echo $obj->labels->singular_name;?></span>

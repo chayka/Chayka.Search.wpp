@@ -43,7 +43,7 @@ class SearchController extends Controller{
             }
             $this->setTitle($title);
 
-            $vipsPerPage = OptionHelper::getOption('vipItemsPerPage', 3);
+            $vipsPerPage = OptionHelper::getOption('adsPerPage', 3);
 
             $vipPosts = $vipsPerPage?
                 SearchHelper::searchPosts($term, $scope, $page, $vipsPerPage, 'vip_keywords', true):

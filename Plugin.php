@@ -112,6 +112,7 @@ class Plugin extends WP\Plugin{
      * Custom Sidebars are to be added here via $this->registerSidebar();
      */
     public function registerSidebars() {
+        $this->registerSidebar('Search', 'search');
 		/* chayka: registerSidebars */
     }
     

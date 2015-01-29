@@ -4,7 +4,7 @@ namespace Chayka\Search;
 $item = SearchHelper::packPostToLuceneDoc($this->post);
 //Util::print_r();
 ?>
-<table class="bem-search_result_debug" rules="all">
+<table class="chayka-search-search_result_debug" rules="all">
     <?php
     foreach ($item as $field => $opts) {
 //            $encoding = $field == self::$idField?null:'UTF-8';

@@ -1,5 +1,5 @@
 #chayka-search-engine {
-    .bem-search_form {
+    .chayka-search-search_form {
         margin: 1em 0 3em;
         background-color: #f8f8f8;
         padding: 2em;
@@ -7,11 +7,11 @@
 
         .row_query {
             input.search_query {
-                //            width: 80%;
-                //            height: 30px;
-                //            padding: 0 1ex ;
-                //            border-radius: 3px;
-                //            border: 1px solid gray;
+                width: ~'calc(100% - 65px)';
+            }
+            button{
+                width: 60px;
+                float: right;
             }
 
         }
@@ -48,7 +48,7 @@
         }
     }
 
-    .bem-search_results_vip {
+    .chayka-search-search_results_vip {
         border: 1px dotted gray;
         margin-bottom: 2em;
         padding: 1em;
@@ -60,7 +60,7 @@
             margin: 0;
         }
 
-        .bem-search_item_vip {
+        .search_item_vip {
             margin-top: 1em;
             background-color: #fafae8;
             padding: 0 1ex;
@@ -82,8 +82,8 @@
 
     }
 
-    .bem-search_results {
-        .bem-search_item {
+    .chayka-search-search_results {
+        .search_item {
             margin-bottom: 2em;
 
             .search_item_number {
@@ -97,16 +97,17 @@
 
                 .search_item_label {
                     float: right;
-                    background-color: gray;
-                    color: white;
-                    font-weight: bold;
+//                    background-color: gray;
+//                    color: white;
+//                    font-weight: bold;
                     display: block;
                     line-height: 1em;
                     padding: 2px 0.5ex;
                     margin: 2px 0 1em 2em;
-                    border-radius: 3px;
-                    box-shadow: 0 0 2px -1px;
-                    text-shadow: 1px 1px 2px -1px;
+                    font-size: 0.9em;
+//                    border-radius: 3px;
+//                    box-shadow: 0 0 2px -1px;
+//                    text-shadow: 1px 1px 2px -1px;
                 }
                 .search_item_title {
                     font-size: 1.1em;
@@ -149,7 +150,7 @@
         }
 
     }
-    .bem-lucene_highlight {
+    .lucene_highlight {
         b[style] {
             color: black;
             background-color: yellow !important;

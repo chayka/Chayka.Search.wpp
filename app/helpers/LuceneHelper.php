@@ -429,7 +429,7 @@ class LuceneHelper {
 
         try {
             $index = self::getInstance($indexId);
-            $hits = $index->find($query);
+            $hits = @$index->find($query);
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
