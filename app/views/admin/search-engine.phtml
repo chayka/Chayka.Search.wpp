@@ -3,6 +3,9 @@
 <div data-ng-app="chayka-options-form" data-ng-cloak>
     <div data-ng-controller="optionsForm" data-ng-init="namespace = 'Chayka.Search'">
         <form data-form-validator="validator" novalidate="novalidate">
+            <div class="form_field stretch index_location" data-form-field="indexLocation">
+                <label class="width50">Index Location</label><select data-ng-init="options.indexLocation='plugin'; indexLocationOptions = {'plugin':'Search Plugin','parent':'Parent Theme', 'child':'Child Theme'}" data-ng-model="options.indexLocation" data-ng-options="key as value for (key, value) in indexLocationOptions" title="Index Location"></select>
+            </div>
             <div class="form_field stretch highlight_found" data-form-field="highlight">
                 <label class="width70">Highlight</label><select data-ng-init="options.highlight='0'; highlightOptions = {'0':'No','1':'Yes'}" data-ng-model="options.highlight" data-ng-options="key as value for (key, value) in highlightOptions" title="Highlight"></select>
             </div>

@@ -53,7 +53,19 @@ class LuceneHelper {
      * @return string
      */
     public static function getDir($indexId = ''){
-        $indexFnDir = Plugin::getInstance()->getBasePath() . 'data/lucene/' . Util::serverName();
+        $basePath = '';
+        switch(OptionHelper::getOption('indexLocation')){
+            case 'child':
+                $basePath = get_stylesheet_directory();
+                break;
+            case 'parent':
+                $basePath = get_template_directory();
+                break;
+            case 'plugin':
+            default:
+                $basePath = Plugin::getInstance()->getBasePath();
+        }
+        $indexFnDir =  $basePath . 'data/lucene/' . Util::serverName();
         if($indexId){
             $indexFnDir.='.'.$indexId;
         }
