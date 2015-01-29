@@ -56,10 +56,10 @@ class LuceneHelper {
         $basePath = '';
         switch(OptionHelper::getOption('indexLocation')){
             case 'child':
-                $basePath = get_stylesheet_directory();
+                $basePath = get_stylesheet_directory().'/';
                 break;
             case 'parent':
-                $basePath = get_template_directory();
+                $basePath = get_template_directory().'/';
                 break;
             case 'plugin':
             default:
