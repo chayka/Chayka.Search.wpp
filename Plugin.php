@@ -94,7 +94,7 @@ class Plugin extends WP\Plugin{
      * Registering console pages
      */
     public function registerConsolePages(){
-        $this->addConsolePage('Search Engine', 'update_core', 'search-engine', '/admin/search-engine', 'dashicons-search', '80');
+        $this->addConsolePage('Search Engine', 'update_core', 'search-engine', '/admin/search-engine', 'dashicons-search', '81');
         $this->addConsoleSubPage('search-engine', 'Indexer', 'update_core', 'indexer', '/admin/indexer');
 
 

@@ -53,7 +53,6 @@ class LuceneHelper {
      * @return string
      */
     public static function getDir($indexId = ''){
-        $basePath = '';
         switch(OptionHelper::getOption('indexLocation')){
             case 'child':
                 $basePath = get_stylesheet_directory().'/';
