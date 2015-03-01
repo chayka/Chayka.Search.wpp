@@ -33,6 +33,7 @@ if(count($this->posts)):?>
     </div>
 <?php endif;?>
 </div>
+<?php add_action('wp_footer', function(){ ?>
 <script>
     (function($, angular){
         $(document).ready(function(){
@@ -40,3 +41,4 @@ if(count($this->posts)):?>
         });
     }(window.jQuery, window.angular));
 </script>
+<?php });
