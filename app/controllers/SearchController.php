@@ -3,9 +3,9 @@
 namespace Chayka\Search;
 
 use Chayka\Helpers\Util;
+use Chayka\WP\Models\PostModel;
 use Chayka\WP\MVC\Controller;
 use Chayka\Helpers\InputHelper;
-use Chayka\WP\Helpers\JsonHelper;
 
 class SearchController extends Controller{
 
@@ -56,6 +56,9 @@ class SearchController extends Controller{
                 ->setupItems($pageLinkPattern, $page, SearchHelper::getTotalFound(), $itemsPerPage);
 //            $this->setupNavigation($term, $scope, $page, $itemsPerPage, SearchHelper::getTotalFound(), $debug);
             foreach ($posts as $post) {
+	            /**
+	             * @var PostModel $post
+	             */
                 $post->loadTerms();
             }
 //            $words = preg_split('%[\s]+%u', $term);
@@ -83,7 +86,7 @@ class SearchController extends Controller{
         $this->view->assign('debug', $debug);
 //        HtmlHelper::setSidebarId('search-results');
 
-        $this->enqueueScriptStyle('chayka-search-engine');
+        $this->enqueueNgScriptStyle('chayka-search-engine');
 //        $this->enqueueStyle('se-search-page');
 //        wp_enqueue_style('pagination');
 //        $this->enqueueScript('se-search-form');

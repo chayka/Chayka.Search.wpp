@@ -3,8 +3,6 @@
 namespace Chayka\Search;
 
 use Chayka\WP\MVC\Controller;
-use Chayka\Helpers\InputHelper;
-use Chayka\WP\Helpers\JsonHelper;
 
 class AdminController extends Controller{
 
@@ -14,9 +12,9 @@ class AdminController extends Controller{
     }
 
     public function searchEngineAction(){
-		$this->enqueueScriptStyle('chayka-options-form');
+		$this->enqueueNgScriptStyle('chayka-options-form');
     }
     public function indexerAction(){
-		$this->enqueueScriptStyle('chayka-search-indexer');
+		$this->enqueueNgScriptStyle('chayka-search-indexer');
     }
 }

@@ -72,10 +72,10 @@ class Plugin extends WP\Plugin{
         $this->setResSrcDir('src/');
         $this->setResDistDir('dist/');
 
-        $this->registerScript('chayka-search-indexer', 'ng-modules/chayka-search-indexer.js', array('chayka-wp-admin', 'chayka-spinners', 'chayka-ajax', 'chayka-modals', 'chayka-utils'));
+        $this->registerNgScript('chayka-search-indexer', 'ng-modules/chayka-search-indexer.js', array('chayka-wp-admin', 'chayka-spinners', 'chayka-ajax', 'chayka-modals', 'chayka-utils'));
         $this->registerStyle('chayka-search-indexer', 'ng-modules/chayka-search-indexer.css', array('chayka-wp-admin', 'chayka-spinners', 'chayka-modals'));
 
-        $this->registerScript('chayka-search-engine', 'ng-modules/chayka-search-engine.js', array('chayka-spinners', 'chayka-ajax', 'chayka-utils'));
+        $this->registerNgScript('chayka-search-engine', 'ng-modules/chayka-search-engine.js', array('chayka-spinners', 'chayka-ajax', 'chayka-utils'));
         $this->registerStyle('chayka-search-engine', 'ng-modules/chayka-search-engine.css', array('chayka-spinners', 'dashicons'));
 		/* chayka: registerResources */
     }
