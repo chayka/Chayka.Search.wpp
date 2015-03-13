@@ -3,7 +3,6 @@
 namespace Chayka\Search;
 
 use Chayka\Helpers\DateHelper;
-use Chayka\Helpers\HttpHeaderHelper;
 use Chayka\Helpers\Util;
 use Chayka\WP\Helpers\AclHelper;
 use Chayka\WP\Models\PostModel;
@@ -75,12 +74,12 @@ class IndexerController extends Controller{
         Util::sessionStart();
         $number = InputHelper::getParam('number', 10);
         $postTypes = InputHelper::getParam('postType', '');
-        $start = Util::getItem($_SESSION, 'wpp_BRX_SearchEngine.indexStarted');
+        $start = Util::getItem($_SESSION, 'Chayka.Search.indexStarted');
         $update = InputHelper::getParam('update');
         $payload = array();
         if(!$start){
             $now = new \DateTime();
-            $start = $_SESSION['wpp_BRX_SearchEngine.indexStarted'] = DateHelper::datetimeToDbStr($now);
+            $start = $_SESSION['Chayka.Search.indexStarted'] = DateHelper::datetimeToDbStr($now);
             $payload['start'] = DateHelper::datetimeToJsonStr($now);
             SearchHelper::optimize();
         }
@@ -111,13 +110,16 @@ class IndexerController extends Controller{
         $payload['posts_indexed'] = array();
         try{
             foreach($posts as $post){
+	            /**
+	             * @var PostModel $post
+	             */
                 SearchHelper::indexPost($post);
                 $payload['log'][] = sprintf("[%d:%s] %s",$post->getId(), $post->getType(), $post->getTitle());
                 $payload['posts_left']--;
             }
             $payload['posts_indexed']['total'] = SearchHelper::postsInIndex();
             if(!$payload['posts_left']){
-                unset($_SESSION['wpp_BRX_SearchEngine.indexStarted']);
+                unset($_SESSION['Chayka.Search.indexStarted']);
                 $payload['stop'] = DateHelper::datetimeToJsonStr(new \DateTime());
             }
         }catch(\Exception $e){
