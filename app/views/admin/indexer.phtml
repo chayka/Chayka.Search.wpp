@@ -5,21 +5,21 @@
         <table rules="all">
             <thead>
                 <tr>
-                    <td class="cell-post_type">{{ 'Post Type' | translate }}</td>
-                    <td class="cell-enabled">{{ 'Search' | translate }}</td>
-                    <td class="cell-indexed">{{ 'Indexed' | translate }}</td>
-                    <td class="cell-controls">{{ 'Controls' | translate }}</td>
+                    <td class="cell-post_type">{{ 'Post Type' | nls }}</td>
+                    <td class="cell-enabled">{{ 'Search' | nls }}</td>
+                    <td class="cell-indexed">{{ 'Indexed' | nls }}</td>
+                    <td class="cell-controls">{{ 'Controls' | nls }}</td>
                 </tr>
             </thead>
             <tbody>
                 <tr data-ng-repeat="(postType, state) in indexState" data-ng-init="yesNoOptions = {'0':'No','1':'Yes'}">
                     <td class="cell-post_type" title="{{postType}}">{{state.label}}</td>
-                    <td class="cell-enabled"><select data-ng-model="state.enabled" data-ng-options="key as value | translate for (key, value) in yesNoOptions" data-ng-change="searchEnabledChanged(postType)" title=""></td>
+                    <td class="cell-enabled"><select data-ng-model="state.enabled" data-ng-options="key as value | nls for (key, value) in yesNoOptions" data-ng-change="searchEnabledChanged(postType)" title=""></td>
                     <td class="cell-indexed">{{state.indexed}}/{{state.total}}<br/>{{state.total ? 100 * state.indexed / state.total : 0 | number}}%</td>
                     <td class="cell-controls">
-                        <button data-ng-click="buttonBuildIndexClicked(postType)" class="button dashicons-before dashicons-building" title="{{ 'Build Index' | translate }}"></button>
-                        <button data-ng-click="buttonUpdateIndexClicked(postType)" class="button dashicons-before dashicons-update" title="{{ 'Update Index' | translate }}"></button>
-                        <button data-ng-click="buttonDeleteIndexClicked(postType)" class="button dashicons-before dashicons-trash" title="{{ 'Delete Index' | translate }}"></button>
+                        <button data-ng-click="buttonBuildIndexClicked(postType)" class="button dashicons-before dashicons-building" title="{{ 'Build Index' | nls }}"></button>
+                        <button data-ng-click="buttonUpdateIndexClicked(postType)" class="button dashicons-before dashicons-update" title="{{ 'Update Index' | nls }}"></button>
+                        <button data-ng-click="buttonDeleteIndexClicked(postType)" class="button dashicons-before dashicons-trash" title="{{ 'Delete Index' | nls }}"></button>
                     </td>
                 </tr>
             </tbody>
@@ -29,17 +29,17 @@
                     <td class="cell-enabled"><!--select data-ng-model="state.enabled" data-ng-options="key as value for (key, value) in yesNoOptions" title=""--></td>
                     <td class="cell-indexed">{{indexStats.indexed}}/{{indexStats.total}}<br/>{{indexStats.total ? 100 * indexStats.indexed / indexStats.total : 0  | number}}%</td>
                     <td class="cell-controls">
-                        <button data-ng-click="buttonBuildIndexClicked()" class="button dashicons-before dashicons-building" title="{{ 'Build Index' | translate }}"></button>
-                        <button data-ng-click="buttonUpdateIndexClicked()" class="button dashicons-before dashicons-update" title="{{ 'Update Index' | translate }}"></button>
-                        <button data-ng-click="buttonDeleteIndexClicked()" class="button dashicons-before dashicons-trash" title="{{ 'Delete Index' | translate }}"></button>
+                        <button data-ng-click="buttonBuildIndexClicked()" class="button dashicons-before dashicons-building" title="{{ 'Build Index' | nls }}"></button>
+                        <button data-ng-click="buttonUpdateIndexClicked()" class="button dashicons-before dashicons-update" title="{{ 'Update Index' | nls }}"></button>
+                        <button data-ng-click="buttonDeleteIndexClicked()" class="button dashicons-before dashicons-trash" title="{{ 'Delete Index' | nls }}"></button>
                     </td>
                 </tr>
             </tfoot>
         </table>
         <div data-job-control="jobControl" data-buttons="pause resume stop"></div>
         <div class="box_optimize">
-            <button data-ng-click="buttonOptimizeClicked()" class="button button-large button-primary">{{ 'Optimize Index' | translate }}</button>
-            <span class="optimize_label">{{'You need optimize index each time you index posts.' | translate }}<br/>{{ 'Last optimized' | translate }}:
+            <button data-ng-click="buttonOptimizeClicked()" class="button button-large button-primary">{{ 'Optimize Index' | nls }}</button>
+            <span class="optimize_label">{{'You need optimize index each time you index posts.' | nls }}<br/>{{ 'Last optimized' | nls }}:
                 <span class="optimize_value">{{lastOptimized | date: 'd MMM y, HH:mm:ss' }}</span>
             </span>
         </div>

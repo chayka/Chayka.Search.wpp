@@ -3,7 +3,7 @@
 (function(angular){
 
 angular.module('chayka-search-indexer', ['chayka-wp-admin', 'chayka-modals', 'chayka-ajax', 'chayka-spinners'])
-    .controller('controlPanel', ['$scope', '$filter', '$translate', 'ajax', 'modals', function($scope, $filter, $translate, ajax, modals){
+    .controller('controlPanel', ['$scope', '$filter', 'nls', 'ajax', 'modals', function($scope, $filter, nls, ajax, modals){
 
         /**
          * Index stats by post types
@@ -147,7 +147,7 @@ angular.module('chayka-search-indexer', ['chayka-wp-admin', 'chayka-modals', 'ch
          */
         $scope.buttonDeleteIndexClicked = function(postType){
             var postTypes = postType?[postType]:$scope.getEnabledPostTypes();
-            var message = $translate.instant( postType?
+            var message = nls._( postType?
                     'Delete index for {{ postTypes }}?':
                     'Delete index?',
                 {postTypes: postTypes.join(', ')});
@@ -185,7 +185,7 @@ angular.module('chayka-search-indexer', ['chayka-wp-admin', 'chayka-modals', 'ch
          */
         $scope.buttonBuildIndexClicked = function(postType){
             var postTypes = postType?[postType]:$scope.getEnabledPostTypes();
-            var message = $translate.instant( postType?
+            var message = nls._( postType?
                     'Build index for {{ postTypes }}?':
                     'Build index?',
                 {postTypes: postTypes.join(', ')});
@@ -201,7 +201,7 @@ angular.module('chayka-search-indexer', ['chayka-wp-admin', 'chayka-modals', 'ch
          */
         $scope.buttonUpdateIndexClicked = function(postType){
             var postTypes = postType?[postType]:$scope.getEnabledPostTypes();
-            var message = $translate.instant( postType?
+            var message = nls._( postType?
                     'Update index for {{ postTypes }}?':
                     'Update index?',
                 {postTypes: postTypes.join(', ')});
@@ -327,9 +327,9 @@ angular.module('chayka-search-indexer', ['chayka-wp-admin', 'chayka-modals', 'ch
 
         $scope.loadIndexState();
     }])
-    .config(['$translateProvider', function($translateProvider) {
+    .config(['nlsProvider', function(nlsProvider) {
 
-        $translateProvider.translations('en-US', {
+        nlsProvider.setTranslations('en-US', {
             'Post Type': 'Post Type',
             'Search': 'Search',
             'Indexed': 'Indexed',
@@ -350,7 +350,7 @@ angular.module('chayka-search-indexer', ['chayka-wp-admin', 'chayka-modals', 'ch
             'Optimize Index': 'Optimize Index'
         });
 
-        $translateProvider.translations('ru-RU', {
+        nlsProvider.setTranslations('ru-RU', {
             'Post Type': 'Тип записи',
             'Search': 'Поиск',
             'Indexed': 'В индексе',
