@@ -45,7 +45,7 @@ class Plugin extends WP\Plugin{
         $this->addAction('lucene_enable_indexer', 'enableIndexer', 10);
         $this->addAction('lucene_disable_indexer', 'disableIndexer', 10);
         $this->addAction('parse_request', function(){
-            if(isset($_REQUEST['s'])){
+            if(isset($_REQUEST['s']) && !is_admin()){
                 $s = InputHelper::getParam('s');
                 $url = '/search/?q='.  urldecode($s);
                 HttpHeaderHelper::redirect($url);
