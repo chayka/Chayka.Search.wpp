@@ -11,15 +11,15 @@
 
 require_once 'vendor/autoload.php';
 
-if(!class_exists("Chayka\WP\Plugin")){
+if(!class_exists("Chayka\\WP\\Plugin")){
     add_action( 'admin_notices', function () {
 ?>
     <div class="error">
-        <p>Chayka Framework functionality is not available</p>
+        <p>Chayka.Core plugin is required in order for Chayka.Search to work properly</p>
     </div>
 <?php
 	});
 }else{
     require_once dirname(__FILE__).'/Plugin.php';
-	add_action('init', array("Chayka\Search\\Plugin", "init"));
+	add_action('init', array("Chayka\\Search\\Plugin", "init"));
 }

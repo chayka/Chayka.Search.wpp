@@ -17,12 +17,12 @@
         ]
     },
     "require": {
-        "chayka/core-wpp": "dev-master",
         "nqxcode/phpmorphy": "dev-master",
         "zendframework/zendsearch": "dev-master"
     },
     "requireDev": {},
     "suggest": {
+        "chayka/core-wpp": "dev-master"
     },
     "scripts":{
         "post-install-cmd": [
