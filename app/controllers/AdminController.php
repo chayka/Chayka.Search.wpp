@@ -12,7 +12,7 @@ class AdminController extends Controller{
     }
 
     public function searchEngineAction(){
-		$this->enqueueNgScriptStyle('chayka-options-form');
+		$this->enqueueNgScriptStyle('chayka-wp-admin');
     }
     public function indexerAction(){
 		$this->enqueueNgScriptStyle('chayka-search-indexer');

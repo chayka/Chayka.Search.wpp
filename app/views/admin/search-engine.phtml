@@ -1,40 +1,33 @@
 <h2>Search Engine</h2>
 
-<div data-ng-cloak>
-    <div data-ng-controller="optionsForm" data-ng-init="namespace = 'Chayka.Search'">
-        <form data-form-validator="validator" novalidate="novalidate">
-            <div class="form_field stretch index_location" data-form-field="indexLocation">
-                <label class="width50">Index Location</label><select data-ng-init="options.indexLocation='plugin'; indexLocationOptions = {'plugin':'Search Plugin','parent':'Parent Theme', 'child':'Child Theme'}" data-ng-model="options.indexLocation" data-ng-options="key as value for (key, value) in indexLocationOptions" title="Index Location"></select>
-            </div>
-            <div class="form_field stretch highlight_found" data-form-field="highlight">
-                <label class="width70">Highlight</label><select data-ng-init="options.highlight='0'; highlightOptions = {'0':'No','1':'Yes'}" data-ng-model="options.highlight" data-ng-options="key as value for (key, value) in highlightOptions" title="Highlight"></select>
-            </div>
-            <div class="form_field fullsize template" data-form-field="template">
-                <label class="">Search page template (theme dir rel.)</label><input type="text" data-ng-init="options.template=''" data-ng-model="options.template" title="Search results page template"/>
-            </div>
-            <div class="form_field stretch items_per_iteration" data-form-field="itemsPerIteration">
-                <label class="width70">Items per iteration</label><input type="text" data-ng-init="options.itemsPerIteration='10'" data-ng-model="options.itemsPerIteration" title="Items per iteration"/>
-            </div>
-            <div class="form_field stretch search_limit" data-form-field="searchLimit">
-                <label class="width70">Search limit</label><input type="text" data-ng-init="options.searchLimit='100'" data-ng-model="options.searchLimit" title="Search limit"/>
-            </div>
-            <div class="form_field stretch ads_per_page" data-form-field="adsPerPage">
-                <label class="width70">Ads per page</label><input type="text" data-ng-init="options.adsPerPage='0'" data-ng-model="options.adsPerPage" title="Ads per page"/>
-            </div>
-            <div class="form_field stretch results_per_page" data-form-field="resultsPerPage">
-                <label class="width70">Results per page</label><input type="text" data-ng-init="options.resultsPerPage='10'" data-ng-model="options.resultsPerPage" title="Results per page"/>
-            </div>
-            <div class="form_field fullsize search_samples" data-form-field="searchSamples">
-                <label class="">Search samples (one per line)</label><textarea data-ng-init="options.searchSamples=''" data-ng-model="options.searchSamples" title="Search samples (one per line)"></textarea>
-            </div>
-            <div class="form_field fullsize search_areas" data-form-field="searchAreas">
-                <label class="">Search areas (area;label;[pt1,pt2])</label><textarea data-ng-init="options.searchAreas=''" data-ng-model="options.searchAreas" title="Search areas (area;label;[pt1,pt2])"></textarea>
-            </div>
-
-            <!-- chayka: fields -->
-            <div class="buttons">
-                <button class="button button-primary button-large" data-ng-click="saveOptions();">Save</button>
-            </div>
-        </form>
+<div data-console-page-options="options" data-namespace="Chayka.Search" data-ng-init="options={};" data-ng-cloak>
+    <div class="form_field stretch index_location" data-form-field="indexLocation">
+        <label class="width50">Index Location</label><select data-ng-init="options.indexLocation='plugin'; indexLocationOptions = {'plugin':'Search Plugin','parent':'Parent Theme', 'child':'Child Theme'}" data-ng-model="options.indexLocation" data-ng-options="key as value for (key, value) in indexLocationOptions" title="Index Location"></select>
     </div>
+    <div class="form_field stretch highlight_found" data-form-field="highlight">
+        <label class="width70">Highlight</label><select data-ng-init="options.highlight='0'; highlightOptions = {'0':'No','1':'Yes'}" data-ng-model="options.highlight" data-ng-options="key as value for (key, value) in highlightOptions" title="Highlight"></select>
+    </div>
+    <div class="form_field fullsize template" data-form-field="template">
+        <label class="">Search page template (theme dir rel.)</label><input type="text" data-ng-init="options.template=''" data-ng-model="options.template" title="Search results page template"/>
+    </div>
+    <div class="form_field stretch items_per_iteration" data-form-field="itemsPerIteration">
+        <label class="width70">Items per iteration</label><input type="text" data-ng-init="options.itemsPerIteration='10'" data-ng-model="options.itemsPerIteration" title="Items per iteration"/>
+    </div>
+    <div class="form_field stretch search_limit" data-form-field="searchLimit">
+        <label class="width70">Search limit</label><input type="text" data-ng-init="options.searchLimit='100'" data-ng-model="options.searchLimit" title="Search limit"/>
+    </div>
+    <div class="form_field stretch ads_per_page" data-form-field="adsPerPage">
+        <label class="width70">Ads per page</label><input type="text" data-ng-init="options.adsPerPage='0'" data-ng-model="options.adsPerPage" title="Ads per page"/>
+    </div>
+    <div class="form_field stretch results_per_page" data-form-field="resultsPerPage">
+        <label class="width70">Results per page</label><input type="text" data-ng-init="options.resultsPerPage='10'" data-ng-model="options.resultsPerPage" title="Results per page"/>
+    </div>
+    <div class="form_field fullsize search_samples" data-form-field="searchSamples">
+        <label class="">Search samples (one per line)</label><textarea data-ng-init="options.searchSamples=''" data-ng-model="options.searchSamples" title="Search samples (one per line)"></textarea>
+    </div>
+    <div class="form_field fullsize search_areas" data-form-field="searchAreas">
+        <label class="">Search areas (area;label;[pt1,pt2])</label><textarea data-ng-init="options.searchAreas=''" data-ng-model="options.searchAreas" title="Search areas (area;label;[pt1,pt2])"></textarea>
+    </div>
+
+    <!-- chayka: fields -->
 </div>
