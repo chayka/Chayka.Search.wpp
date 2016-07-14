@@ -226,7 +226,7 @@ class IndexerController extends Controller{
     public function morphyAction(){
         $word = InputHelper::checkParam('word')->required()->getValue();
         InputHelper::validateInput(true);
-        $filter = new MorphyFilter();
+        $filter = new MorphyAdapter();
         $word = trim(mb_strtoupper($word, "utf-8"));
         $part = InputHelper::getParam('part');
         $gram = InputHelper::getParam('gram');
@@ -234,15 +234,15 @@ class IndexerController extends Controller{
             $gram = explode(',', $gram);
         }
 
-        $lang = $filter->detectWordLanguage($word);
+        $lang = MorphyAdapter::detectWordLanguage($word);
         if($lang){
             $morphy = null;
             switch($lang){
                 case 'ru':
-                    $morphy = $filter->getMorphyRu();
+                    $morphy = MorphyAdapter::getMorphyRu();
                     break;
                 case 'en':
-                    $morphy = $filter->getMorphyEn();
+                    $morphy = MorphyAdapter::getMorphyEn();
                     break;
             }
             $partOfSpeech = $morphy->getPartOfSpeech($word);

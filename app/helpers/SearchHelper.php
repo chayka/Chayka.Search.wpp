@@ -20,11 +20,13 @@ class SearchHelper {
 
     /**
      * Get index
-     * @return \Zend_Search_Lucene
-     * @internal param string $indexId
+     *
+     * @param string $indexId
+     *
+     * @return \ZendSearch\Lucene\Index
      */
-    public static function getIndex(){
-        return LuceneHelper::getInstance();
+    public static function getIndex($indexId = ''){
+        return LuceneHelper::getInstance($indexId);
     }
 
     /**
@@ -464,7 +466,7 @@ class SearchHelper {
     /**
      * Index post
      *
-     * @param $post
+     * @param PostModel $post
      * @return null
      */
     public static function indexPost($post){
@@ -481,6 +483,9 @@ class SearchHelper {
         $doc = LuceneHelper::luceneDocFromArray($item);
         LuceneHelper::indexLuceneDoc($doc);
 
+        /**
+         * @var PostModel $post
+         */
         $post->updateMeta(self::META_FIELD_INDEXED, DateHelper::datetimeToDbStr(new \DateTime()));
 
         return null;

@@ -10,6 +10,7 @@ namespace Chayka\Search;
 
 
 use Chayka\Helpers\FsHelper;
+use Chayka\Helpers\LogHelper;
 use Chayka\Helpers\Util;
 use phpMorphy;
 use ZendSearch\Lucene;
@@ -22,7 +23,7 @@ class LuceneHelper {
     protected static $instance = array();
 
     /**
-     * @var MorphyFilter
+     * @var MorphyAdapter
      */
     protected static $morphy;
 
@@ -108,14 +109,14 @@ class LuceneHelper {
     }
 
     /**
-     * Get instance of MorphyFilter.
+     * Get instance of MorphyAdapter.
      * Since it is heavy, has cache and has to load dictionaries, makes sense to keep it singleton.
      *
-     * @return MorphyFilter
+     * @return MorphyAdapter
      */
     public static function getMorphy(){
         if(!self::$morphy){
-            self::$morphy = new MorphyFilter();
+            self::$morphy = new MorphyAdapter();
         }
         return self::$morphy;
     }
@@ -307,7 +308,7 @@ class LuceneHelper {
      * Convert array post data (prepped by packLuceneDoc) to Lucene Document
      *
      * @param array $item
-     * @return \Zend_Search_Lucene_Document
+     * @return \ZendSearch\Lucene\Document
      */
     public static function luceneDocFromArray($item) {
         $doc = new Lucene\Document();
@@ -352,7 +353,6 @@ class LuceneHelper {
      * @param $value
      * @param string $indexId
      * @return int
-     * @throws \Zend_Search_Lucene_Exception
      */
     public static function deleteByKey($key, $value, $indexId = '') {
         $deleted = 0;
@@ -414,12 +414,14 @@ class LuceneHelper {
      *
      * @param $term
      * @param null $field
+     * @param string $indexId
+     *
      * @return int
      */
-    public static function docNumber($term, $field = null){
+    public static function docNumber($term, $field = null, $indexId = ''){
         $q = $field? "($field:$term)": $term;
         try {
-            $c = count(self::searchHits($q));
+            $c = count(self::searchHits($q, $indexId));
             echo "[$q $c]";
             return $c;
         } catch (\Exception $e) {
@@ -432,7 +434,7 @@ class LuceneHelper {
      *
      * @param $query
      * @param string $indexId
-     * @return array Zend_Search_Lucene_Search_QueryHit
+     * @return \ZendSearch\Lucene\Search\QueryHit[]
      */
     public static function searchHits($query, $indexId = '') {
 
@@ -452,10 +454,12 @@ class LuceneHelper {
      * Search and return lucene documents
      *
      * @param $query
+     * @param string $indexId
+     *
      * @return array
      */
-    public static function searchLuceneDocs($query) {
-        $hits = self::searchHits($query);
+    public static function searchLuceneDocs($query, $indexId = '') {
+        $hits = self::searchHits($query, $indexId);
         $docs = array();
         foreach ($hits as $hit) {
             $docs[] = $hit->getDocument();
@@ -468,10 +472,12 @@ class LuceneHelper {
      * Handy to fetch docs from db by those ids.
      *
      * @param $query
+     * @param string $indexId
+     *
      * @return array
      */
-    public static function searchIds($query) {
-        $hits = self::searchHits($query);
+    public static function searchIds($query, $indexId = '') {
+        $hits = self::searchHits($query, $indexId);
         $ids = array();
         foreach ($hits as $hit) {
             $ids[] = $hit->getDocument()->getFieldValue(self::getIdField());
@@ -514,9 +520,11 @@ class Analyzer extends Lucene\Analysis\Analyzer\Common\Utf8\CaseInsensitive{
 
 }
 
-class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
+class MorphyAdapter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
 
-    private $morphy = array();
+    private static $morphy = array();
+
+    private static $omitSenselessWords = true;
 
     protected $cache = array();
 
@@ -532,15 +540,15 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
      *
      * @return phpMorphy
      */
-    public function getMorphyRu(){
-        if(empty($this->morphy['ru'])){
+    public static function getMorphyRu(){
+        if(empty(self::$morphy['ru'])){
             $dir = Plugin::getInstance()->getBasePath() . 'res/morphy/ru';
             $lang = 'ru_RU';
 
-            $this->morphy['ru'] = new phpMorphy($dir, $lang);
+            self::$morphy['ru'] = new phpMorphy($dir, $lang);
         }
 
-        return $this->morphy['ru'];
+        return self::$morphy['ru'];
     }
 
     /**
@@ -548,15 +556,29 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
      *
      * @return phpMorphy
      */
-    public function getMorphyEn(){
-        if(empty($this->morphy['en'])){
+    public static function getMorphyEn(){
+        if(empty(self::$morphy['en'])){
             $dir = Plugin::getInstance()->getBasePath() . 'res/morphy/en';
             $lang = 'en_EN';
 
-            $this->morphy['en'] = new phpMorphy($dir, $lang);
+            self::$morphy['en'] = new phpMorphy($dir, $lang);
         }
 
-        return $this->morphy['en'];
+        return self::$morphy['en'];
+    }
+
+    /**
+     * @return boolean
+     */
+    public static function isOmitSenselessWords(){
+        return self::$omitSenselessWords;
+    }
+
+    /**
+     * @param boolean $omitSenselessWords
+     */
+    public static function setOmitSenselessWords($omitSenselessWords){
+        self::$omitSenselessWords = $omitSenselessWords;
     }
 
     /**
@@ -602,7 +624,7 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
      * @param string $word
      * @return null|string
      */
-    public function detectWordLanguage($word){
+    public static function detectWordLanguage($word){
 
         $lang = null;
 
@@ -620,9 +642,10 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
      * @return null|string
      */
     public function normalizeEnWord($word){
-        $morphy = $this->getMorphyEn();
+        $morphy = self::getMorphyEn();
 
         $omit = false;
+        $omitSenseless = MorphyAdapter::isOmitSenselessWords();
         $part = $morphy->getPartOfSpeech($word);
         $form = $word;
         $part = is_array($part) && count($part) ? $part[0] : '';
@@ -650,11 +673,11 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
             case 'INT':
             case 'PART':
                 $omit = true;
-                $form = '---------';
+                $form = $omitSenseless?'---------':$form;
                 break;
             default:
         }
-        if ($omit) {
+        if ($omit && $omitSenseless) {
             return null;
         }
 
@@ -667,9 +690,10 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
      * @return null|string
      */
     public function normalizeRuWord($word){
-        $morphy = $this->getMorphyRu();
+        $morphy = MorphyAdapter::getMorphyRu();
 
         $omit = false;
+        $omitSenseless = MorphyAdapter::isOmitSenselessWords();
         $part = $morphy->getPartOfSpeech($word);
         $form = $word;
         $part = is_array($part) && count($part) ? $part[0] : '';
@@ -719,7 +743,7 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
             case 'МЕЖД':
             case 'ЧАСТ':
                 $omit = true;
-                $form = '---------';
+                $form = $omitSenseless?'---------':$form;
                 break;
             case 'ИНФИНИТИВ':
             case 'Н':
@@ -730,7 +754,7 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
                 break;
             default:
         }
-        if ($omit) {
+        if ($omit && $omitSenseless) {
             return null;
         }
 
@@ -747,7 +771,7 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
     public function normalizeWord($word){
         $str = trim(mb_strtoupper($word, "utf-8"));
 
-        $lang = $this->detectWordLanguage($word);
+        $lang = self::detectWordLanguage($word);
 
         $cache = Util::getItem($this->cache, $str);
 
@@ -772,7 +796,7 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
     }
 
     /**
-     * MorphyFilter function that normalizes given token (word)
+     * MorphyAdapter function that normalizes given token (word)
      *
      * @param Lucene\Analysis\Token $srcToken
      * @return Lucene\Analysis\Token|null
@@ -780,8 +804,9 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
     public function normalize(Lucene\Analysis\Token $srcToken) {
 
         $word = $srcToken->getTermText();
-
+        LogHelper::dir($word, 'raw word');
         $word = $this->normalizeWord($word);
+        LogHelper::dir($word, 'norm word');
         if(!$word){
             return null;
         }
@@ -796,5 +821,23 @@ class MorphyFilter extends Lucene\Analysis\TokenFilter\LowerCaseUtf8 {
 
         return $newToken;
     }
+
+    /**
+     * @param $word
+     *
+     * @return array|null
+     */
+    public static function getWordInfo($word){
+        $str = trim(mb_strtoupper($word, "utf-8"));
+
+        $lang = self::detectWordLanguage($str);
+        if('ru' === $lang){
+            return self::getMorphyRu()->getGramInfo($str);
+        }else if('en' === $lang){
+            return self::getMorphyEn()->getGramInfo($str);
+        }
+        
+        return null;
+    }  
 
 }
